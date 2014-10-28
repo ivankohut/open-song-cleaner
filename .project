@@ -17,15 +17,17 @@
 					<key>explodeModules</key>
 					<value>true</value>
 				</dictionary>
-				<dictionary>
-					<key>systemRepo</key>
-					<value></value>
-				</dictionary>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.wst.common.project.facet.core.builder</name>
+			<arguments>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>com.redhat.ceylon.eclipse.ui.ceylonNature</nature>
+		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
 </projectDescription>
