@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="2.0">
+
+<xsd:element name="song" type="OpenSongSong"/>
+
+<xsd:complexType name="OpenSongSong">
+  <xsd:sequence>
+    <xsd:element name="title" type="xsd:string"/>
+    <xsd:element name="author" type="xsd:string"/>
+    <xsd:element name="copyright" type="xsd:string"/>
+    <xsd:element name="hymn_number" type="xsd:integer"/>
+    <xsd:element name="presentation" type="xsd:string"/>
+    <xsd:element name="ccli" type="xsd:string"/>
+    <xsd:element name="capo" type="CapoType"/>
+    <xsd:element name="user1" type="xsd:string"/>
+    <xsd:element name="user2" type="xsd:string"/>
+    <xsd:element name="user3" type="xsd:string"/>
+    <xsd:element name="theme" type="xsd:string"/>
+    <xsd:element name="tempo" type="xsd:string"/>
+    <xsd:element name="time_sig" type="xsd:string"/>
+    <xsd:element name="lyrics" type="xsd:string"/>
+  </xsd:sequence>
+</xsd:complexType>
+
+
+<xsd:complexType name="CapoType">
+  <xsd:attribute name="print" type="xsd:boolean"/>
+</xsd:complexType>
+
+</xsd:schema>
