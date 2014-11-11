@@ -1,1 +1,6 @@
-test2
+Neformálna špecifikácia:
+ * vyrobit "presentation" pre vsetky piesne, ktore nemaju, aby fungovalo zobrazovanie cisel sloh
+ * odstranit prazdne riadky
+ * odstranit medzery nakonci riadkov
+ * zjednotit medzery medzi slohami
+ * opravit nazvy suborov podla nazvov piesni (bez diakritiky)
