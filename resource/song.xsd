@@ -14,6 +14,9 @@
     <xsd:element name="presentation" type="xsd:string"/>
     <xsd:element name="ccli" type="xsd:string"/>
     <xsd:element name="capo" type="CapoType"/>
+    <xsd:element name="key" type="xsd:string"/>
+    <xsd:element name="aka" type="xsd:string"/>
+    <xsd:element name="key_line" type="xsd:string"/>
     <xsd:element name="user1" type="xsd:string"/>
     <xsd:element name="user2" type="xsd:string"/>
     <xsd:element name="user3" type="xsd:string"/>
