@@ -1,3 +1,12 @@
+!*< Import
+!define TEST_SYSTEM {slim} 
+
+!include OpenSongCleaner.ClassPathBuilder
+
+|Import|
+|pl.drabik.opensongcleaner.fixtures|
+*!
+
 !1 Poznámky
 
 Opravy dosiahnuteľné regulárnymi výrazmi:

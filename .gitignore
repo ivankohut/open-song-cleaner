@@ -3,3 +3,4 @@
 /modules
 *.zip
 .DS_Store
+/specification/OpenSongCleaner/ClassPathBuilder
