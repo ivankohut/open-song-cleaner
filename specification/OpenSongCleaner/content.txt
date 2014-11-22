@@ -9,15 +9,18 @@
 
 !1 Poznámky
 
-Opravy dosiahnuteľné regulárnymi výrazmi:
- * odstranit prazdne riadky: 
-  * vo vnútri textu: eclipse regex ^\s*\n
-  * na začiatku textu
-  * na konci textu
+Opravy dosiahnuteľné regulárnymi výrazmi (eclipse regex):
  * odstranit medzery nakonci riadkov
-  * vo vnútri textu
-  * na začiatku textu
-  * na konci textu
+  * vo vnútri textu: zamen [ \t\f]+\r\n na \r\n
+  * na začiatku textu: rovnako ako vo vnutri textu
+  * na konci textu: rovnako ako vo vnutri textu
+ * odstranit prazdne riadky: 
+  * vo vnútri textu: zamen ^\s*\n na <prazdny_string>
+  * na začiatku textu: zamen ^\s+\[ na [ a potom <lyrics>\r\n na <lyrics>
+  * na konci textu: rovnako ako vo vnutri textu
+ * odsadenie textu na 
+  * na jednu medzeru: zamen ^\s+([^\s<]) na <medzera>\1
+
   
 Opravy vyžadujúce tvorbu programu:  
  * vyrobit "presentation" pre vsetky piesne, ktore nemaju, aby fungovalo zobrazovanie cisel sloh
