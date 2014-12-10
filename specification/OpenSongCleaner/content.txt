@@ -85,3 +85,8 @@ Pravidlá pre vytvorenie nového názvu súboru:
 |Script         |Nazov suboru piesne                        |
 |piesen s cislom|2           |a nazvom|Vďaka, česť, Otče náš|
 |check          |nazov suboru|002 - Vdaka, cest, Otce nas   |
+
+
+!1 Nastavenia
+
+OpenSongCleaner.ClassPathBuilder

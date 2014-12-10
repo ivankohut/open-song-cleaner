@@ -1,3 +1,6 @@
+import pl.drabik.opensongcleaner {
+	createSongFilename
+}
 shared class VypocetPrezentacie() {
 	
 	shared variable String textPiesne = "";
@@ -27,6 +30,6 @@ shared class NazovSuboruPiesne() {
 	}
 	
 	shared String nazovSuboru() {
-		return "TODO";
+		return createSongFilename(nazov,cislo);
 	}
 }
