@@ -1,12 +1,17 @@
 import pl.drabik.opensongcleaner {
-	createSongFilename
+	createSongFilename,
+	PartCodes,
+	Presentation
 }
 shared class VypocetPrezentacie() {
 	
 	shared variable String textPiesne = "";
 	
 	shared String prezentacia() {
-		return "TODO";
+		value partCodes = PartCodes(textPiesne);
+		value presentation = Presentation(partCodes);
+		return presentation.computePresentation();
+		//TODO simplify
 	}
 }
 
