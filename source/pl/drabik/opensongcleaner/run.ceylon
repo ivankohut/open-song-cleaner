@@ -12,6 +12,9 @@ import java.text {
 import javax.xml.transform {
 	Result
 }
+import pl.drabik.opensongcleaner.opensong {
+	OpenSongSong
+}
 
 String removeAccents(String input) {
 	value normalizedString = Normalizer.normalize(javaString(input), Normalizer.Form.\iNFD);
@@ -47,21 +50,41 @@ shared class PartCodes(String songText) {
 	
 }
 
+
 shared class Presentation(PartCodes partCodes) {
 	
 	value separator = " ";
 	
-	shared String computePresentation() {
+	function compute() {
 		value versesCodes = partCodes.extractVersesCodes();
-		
-		variable {String*} presentationCollection = {};
 		if (partCodes.containsChorus()) {
-			presentationCollection = versesCodes.map((element) => element + separator + "C");
+			return versesCodes.map((element) => element + separator + "C");
 		}
 		else {
-			presentationCollection = versesCodes;
+			return versesCodes;
 		}
-		 
+	}
+	
+	shared actual String string {
+		value presentationCollection=compute();
 		return separator.join(presentationCollection);
+	}
+}
+
+
+shared class OpenSongSongProcessor() {
+	
+	shared void computeAndReplacePresentation(OpenSongSong song) {
+		value partCodes = PartCodes(song.lyrics);
+		value presentation = Presentation(partCodes);
+		
+		value oldPresentation = song.presentation; 
+		value newPresentation = presentation.string; 
+		
+		if (oldPresentation=="") {
+			song.presentation = newPresentation;
+		} else if (oldPresentation!=newPresentation){
+			throw Exception("Vypočítaná prezentácia nie je v súlade s existujúcou.");
+		}
 	}
 }

@@ -1,17 +1,25 @@
 import pl.drabik.opensongcleaner {
 	createSongFilename,
 	PartCodes,
-	Presentation
+	Presentation,
+	OpenSongSongProcessor
+}
+import pl.drabik.opensongcleaner.opensong {
+	OpenSongSong
 }
 shared class VypocetPrezentacie() {
 	
 	shared variable String textPiesne = "";
 	
 	shared String prezentacia() {
-		value partCodes = PartCodes(textPiesne);
-		value presentation = Presentation(partCodes);
-		return presentation.computePresentation();
-		//TODO simplify
+		value song = OpenSongSong();
+		song.lyrics =  textPiesne;
+		song.presentation = "";
+		
+		value songProcessor = OpenSongSongProcessor();
+		songProcessor.computeAndReplacePresentation(song);
+		
+		return song.presentation;
 	}
 }
 

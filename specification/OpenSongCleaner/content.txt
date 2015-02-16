@@ -3,7 +3,7 @@
 
 !include OpenSongCleaner.ClassPathBuilder
 
-|Import|
+|Import                            |
 |pl.drabik.opensongcleaner.fixtures|
 *!
 
@@ -69,6 +69,7 @@ Program naplní sekciu prezentácia (XML element '''presentation''') ak je práz
 |Naplnenie prezentacie                                                                        |
 |stara hodnota|vypocitana hodnota|nova hodnota?                                               |
 |             |V1 V2             |V1 V2                                                       |
+|V1 C V2 C    |V1 C V2 C         |V1 C V2 C                                                   |
 |V1 C V2      |V1 C V2 C         |chyba[Vypočítaná prezentácia nie je v súlade s existujúcou.]|
 
 
