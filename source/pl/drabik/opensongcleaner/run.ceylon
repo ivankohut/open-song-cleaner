@@ -72,17 +72,24 @@ shared class Presentation(PartCodes partCodes) {
 }
 
 
-shared class OpenSongSongProcessor() {
-	
-	shared default String compute(String lyrics) {
+shared interface PresentationComputer {
+	shared formal String compute(String lyrics); 
+}
+
+shared class OpenSongPresentationComputer() satisfies PresentationComputer {
+	shared actual String compute(String lyrics) {
 		value partCodes = PartCodes(lyrics);
 		value presentation = Presentation(partCodes);
 		return presentation.string;
 	}
+}
+
+
+shared class OpenSongSongProcessor(PresentationComputer presentationComputer) {
 	
 	shared void computeAndReplacePresentation(OpenSongSong song) {
 		value oldPresentation = song.presentation; 
-		value newPresentation = compute(song.lyrics); 
+		value newPresentation = presentationComputer.compute(song.lyrics); 
 		
 		if (oldPresentation=="") {
 			song.presentation = newPresentation;

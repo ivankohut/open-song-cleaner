@@ -136,28 +136,29 @@ class PresentationTest() {
 }
 
 
-
-class ConstantOpenSongSongProcessor(String presentation, String expectedLyrics) extends OpenSongSongProcessor() {
+class ConstantPresentationComputer(String presentation) satisfies PresentationComputer {
 	shared actual String compute(String lyrics) {
-		if (expectedLyrics==lyrics) {
-			return presentation; 
-		} else {
-			assert(false);
-		}
+		return presentation; 
 	}
 }
 
 
 class OpenSongSongProcessorTest() {
-	test
-	shared void songWithEmptyPresentationGetsANewPresentation() {
-		value computedPresentation = "V1 C V2 C";
-		value expectedLyrics = "ANY_LYRICS";
-		value sut = ConstantOpenSongSongProcessor(computedPresentation,expectedLyrics);
-		
+	
+	function createOpenSongSong(String presentation) {
 		value song = OpenSongSong();
-		song.lyrics = expectedLyrics;
-		song.presentation = "";
+		song.lyrics = "";
+		song.presentation = presentation; 
+		return song;
+	}
+	
+	test
+	shared void songWithEmptyPresentationGetsComputedPresentation() {
+		value computedPresentation = "V1 C V2 C";
+		value presentationComputer = ConstantPresentationComputer(computedPresentation);
+		value sut = OpenSongSongProcessor(presentationComputer);
+
+		value song = createOpenSongSong{presentation="";};
 		
 		//exercise
 		sut.computeAndReplacePresentation(song);
@@ -168,26 +169,27 @@ class OpenSongSongProcessorTest() {
 	
 	test 
 	shared void songWithCorrectPresentationStaysTheSame(){
-		value sut = OpenSongSongProcessor();
-		value song = OpenSongSong();
-		song.lyrics =  "[V1] a [C] b [V2] c";
 		value existingPresentation = "V1 C V2 C";
-		song.presentation = existingPresentation;
+		value presentationComputer = ConstantPresentationComputer(existingPresentation);
+		value sut = OpenSongSongProcessor(presentationComputer);
+
+		value song = createOpenSongSong{presentation=existingPresentation;};
 		
 		//exercise
 		sut.computeAndReplacePresentation(song);
 		
 		//verify
 		assertEquals(song.presentation,existingPresentation);
-		
 	}
 	
 	test 
 	shared void songWithWrongPresentationThrowsErrorMessageWhenComputingPresentation(){
-		value sut = OpenSongSongProcessor();
-		value song = OpenSongSong();
-		song.lyrics =  "[V1] a [C] b [V2] c";
-		song.presentation = "V1 C V2";
+		value computedPresentation = "V1 C V2 C";
+		value presentationComputer = ConstantPresentationComputer(computedPresentation);
+		value sut = OpenSongSongProcessor(presentationComputer);
+
+		value existingPresentation = computedPresentation + " V3";
+		value song = createOpenSongSong{presentation=existingPresentation;};
 		
 		//exercise
 		try {
@@ -198,5 +200,31 @@ class OpenSongSongProcessorTest() {
 		catch (Exception e){
 			assertEquals(e.message,"Vypočítaná prezentácia nie je v súlade s existujúcou.");
 		}
+	}
+}
+
+
+class OpenSongPresentationComputerTest() {
+
+	test
+	shared void computesPresentationFromLyrics(){
+		value sut = OpenSongPresentationComputer();
+
+		value lyrics="""
+		                  [V1]
+		                  Prvý riadok
+		                  Druhý riadok
+		                  [C]
+		                  Refrén
+		                  [V2]
+		                  Prvý riadok
+		                  Druhý riadok
+		             """;
+
+		//exercise
+		value computedPresentation = sut.compute(lyrics);
+	
+		//verify
+		assertEquals(computedPresentation,"V1 C V2 C");
 	}
 }

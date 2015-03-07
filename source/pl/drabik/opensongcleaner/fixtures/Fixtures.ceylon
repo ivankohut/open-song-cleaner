@@ -2,7 +2,9 @@ import pl.drabik.opensongcleaner {
 	createSongFilename,
 	PartCodes,
 	Presentation,
-	OpenSongSongProcessor
+	OpenSongSongProcessor,
+	PresentationComputer,
+	OpenSongPresentationComputer
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
@@ -16,7 +18,7 @@ shared class VypocetPrezentacie() {
 		song.lyrics =  textPiesne;
 		song.presentation = "";
 		
-		value songProcessor = OpenSongSongProcessor();
+		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer());
 		songProcessor.computeAndReplacePresentation(song);
 		
 		return song.presentation;
