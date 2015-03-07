@@ -74,12 +74,15 @@ shared class Presentation(PartCodes partCodes) {
 
 shared class OpenSongSongProcessor() {
 	
-	shared void computeAndReplacePresentation(OpenSongSong song) {
-		value partCodes = PartCodes(song.lyrics);
+	shared default String compute(String lyrics) {
+		value partCodes = PartCodes(lyrics);
 		value presentation = Presentation(partCodes);
-		
+		return presentation.string;
+	}
+	
+	shared void computeAndReplacePresentation(OpenSongSong song) {
 		value oldPresentation = song.presentation; 
-		value newPresentation = presentation.string; 
+		value newPresentation = compute(song.lyrics); 
 		
 		if (oldPresentation=="") {
 			song.presentation = newPresentation;

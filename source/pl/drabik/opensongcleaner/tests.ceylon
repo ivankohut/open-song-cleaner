@@ -135,19 +135,35 @@ class PresentationTest() {
 	}
 }
 
+
+
+class ConstantOpenSongSongProcessor(String presentation, String expectedLyrics) extends OpenSongSongProcessor() {
+	shared actual String compute(String lyrics) {
+		if (expectedLyrics==lyrics) {
+			return presentation; 
+		} else {
+			assert(false);
+		}
+	}
+}
+
+
 class OpenSongSongProcessorTest() {
 	test
 	shared void songWithEmptyPresentationGetsANewPresentation() {
-		value sut = OpenSongSongProcessor();
+		value computedPresentation = "V1 C V2 C";
+		value expectedLyrics = "ANY_LYRICS";
+		value sut = ConstantOpenSongSongProcessor(computedPresentation,expectedLyrics);
+		
 		value song = OpenSongSong();
-		song.lyrics =  "[V1] a [C] b [V2] c";
+		song.lyrics = expectedLyrics;
 		song.presentation = "";
 		
 		//exercise
 		sut.computeAndReplacePresentation(song);
 		
 		//verify
-		assertEquals(song.presentation,"V1 C V2 C");
+		assertEquals(song.presentation,computedPresentation);
 	}
 	
 	test 
