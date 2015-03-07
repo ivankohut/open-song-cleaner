@@ -136,21 +136,22 @@ class PresentationTest() {
 }
 
 
-class ConstantPresentationComputer(String presentation) satisfies PresentationComputer {
+shared class ConstantPresentationComputer(String presentation) satisfies PresentationComputer {
 	shared actual String compute(String lyrics) {
 		return presentation; 
 	}
 }
 
+shared OpenSongSong createOpenSongSong(String presentation) {
+	value song = OpenSongSong();
+	song.lyrics = "";
+	song.presentation = presentation; 
+	return song;
+}
+
 
 class OpenSongSongProcessorTest() {
 	
-	function createOpenSongSong(String presentation) {
-		value song = OpenSongSong();
-		song.lyrics = "";
-		song.presentation = presentation; 
-		return song;
-	}
 	
 	test
 	shared void songWithEmptyPresentationGetsComputedPresentation() {
