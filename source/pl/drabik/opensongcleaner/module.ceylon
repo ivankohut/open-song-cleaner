@@ -4,5 +4,5 @@ module pl.drabik.opensongcleaner "1.0.0" {
 	import java.base "7";	
 	import ceylon.test "1.1.1";
 	import ceylon.interop.java "1.1.1";
-	import org.apache.commons.lang3 "3.3.2";
+	import "org.apache.commons:commons-lang3" "3.3.2";
 }
