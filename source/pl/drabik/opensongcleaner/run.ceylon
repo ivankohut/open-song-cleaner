@@ -13,15 +13,19 @@ import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
 
-String removeAccents(String input) {
-	value normalizedString = Normalizer.normalize(javaString(input), Normalizer.Form.\iNFD);
-	return javaString(normalizedString).replaceAll("[^\\p{ASCII}]", "");
+
+shared class SongFilenameProcessor() {
+
+	shared String removeAccents(String input) {
+		value normalizedString = Normalizer.normalize(javaString(input), Normalizer.Form.\iNFD);
+		return javaString(normalizedString).replaceAll("[^\\p{ASCII}]", "");
+	}
+	
+	shared String formatHymnNumber(Integer input) => leftPad(input.string, 3, '0');
+	
+	shared String createSongFilename(String songName, Integer hymnNumber) 	
+			=> formatHymnNumber(hymnNumber) + " - " + removeAccents(songName);
 }
-
-String formatHymnNumber(Integer input) => leftPad(input.string, 3, '0');
-
-shared String createSongFilename(String songName, Integer hymnNumber) 	
-	=> formatHymnNumber(hymnNumber) + " - " + removeAccents(songName);
 
 
 shared class PartCodes(String songText) {

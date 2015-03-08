@@ -1,9 +1,9 @@
 import pl.drabik.opensongcleaner {
-	createSongFilename,
 	OpenSongSongProcessor,
 	OpenSongPresentationComputer,
 	ConstantPresentationComputer,
-	createOpenSongSong
+	createOpenSongSong,
+	SongFilenameProcessor
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
@@ -55,6 +55,7 @@ shared class NazovSuboruPiesne() {
 	}
 	
 	shared String nazovSuboru() {
-		return createSongFilename(nazov,cislo);
+		value songFilenameProcessor = SongFilenameProcessor();
+		return songFilenameProcessor.createSongFilename(nazov,cislo);
 	}
 }

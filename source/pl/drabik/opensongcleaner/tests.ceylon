@@ -7,13 +7,14 @@ import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
 
-class SongFilenameTest() {
+class SongFilenameProcessorTest() {
 	test 
 	shared void shouldRemoveAccentsFromString() {
 		value input="ľščťžýáíéúäôň";
+		value sut = SongFilenameProcessor();
 		
 		//exercise
-		value result=removeAccents(input);
+		value result=sut.removeAccents(input);
 		
 		//verify
 		assertEquals(result,"lsctzyaieuaon");
@@ -22,9 +23,10 @@ class SongFilenameTest() {
 	test
 	shared void hymnNumberFormattedToLengthThreeByAddingLeftPaddingByZeros() {
 		value input = 37;
+		value sut = SongFilenameProcessor();
 		
 		//exercise
-		value result=formatHymnNumber(input);
+		value result=sut.formatHymnNumber(input);
 		
 		//verify
 		assertEquals(result,"037");
@@ -34,9 +36,10 @@ class SongFilenameTest() {
 	shared void songFilenameConsistsOfFormattedHymnNumberAndSongNameWithoutAccents() {
 		value hymnNumber = 2;
 		value songName = "Vďaka, česť, Otče náš";
+		value sut = SongFilenameProcessor();
 		
 		//exercise
-		value result=createSongFilename(songName,hymnNumber);
+		value result=sut.createSongFilename(songName,hymnNumber);
 		
 		//verify
 		assertEquals(result,"002 - Vdaka, cest, Otce nas");
@@ -94,18 +97,16 @@ class PartCodesTest() {
 }
 
 
-
-class ConstantPartCodes({String*} versesCodes, Boolean _containsChorus) extends PartCodes("") {
+class ConstantPartCodes({String*} versesCodes, Boolean doesContainChorus) extends PartCodes("") {
 	
 	actual shared {String*} extractVersesCodes() {
 		return versesCodes;
 	}
 
 	actual shared Boolean containsChorus() {
-		return _containsChorus;
+		return doesContainChorus;
 	}
 }
-
 
 class PresentationTest() {
 	test
@@ -136,6 +137,32 @@ class PresentationTest() {
 }
 
 
+class OpenSongPresentationComputerTest() {
+	
+	test
+	shared void computesPresentationFromLyrics(){
+		value sut = OpenSongPresentationComputer();
+		
+		value lyrics="""
+		                  [V1]
+		                  Prvý riadok
+		                  Druhý riadok
+		                  [C]
+		                  Refrén
+		                  [V2]
+		                  Prvý riadok
+		                  Druhý riadok
+		                """;
+		
+		//exercise
+		value computedPresentation = sut.compute(lyrics);
+		
+		//verify
+		assertEquals(computedPresentation,"V1 C V2 C");
+	}
+}
+
+
 shared class ConstantPresentationComputer(String presentation) satisfies PresentationComputer {
 	shared actual String compute(String lyrics) {
 		return presentation; 
@@ -149,9 +176,7 @@ shared OpenSongSong createOpenSongSong(String presentation) {
 	return song;
 }
 
-
 class OpenSongSongProcessorTest() {
-	
 	
 	test
 	shared void songWithEmptyPresentationGetsComputedPresentation() {
@@ -201,31 +226,5 @@ class OpenSongSongProcessorTest() {
 		catch (Exception e){
 			assertEquals(e.message,"Vypočítaná prezentácia nie je v súlade s existujúcou.");
 		}
-	}
-}
-
-
-class OpenSongPresentationComputerTest() {
-
-	test
-	shared void computesPresentationFromLyrics(){
-		value sut = OpenSongPresentationComputer();
-
-		value lyrics="""
-		                  [V1]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  [C]
-		                  Refrén
-		                  [V2]
-		                  Prvý riadok
-		                  Druhý riadok
-		             """;
-
-		//exercise
-		value computedPresentation = sut.compute(lyrics);
-	
-		//verify
-		assertEquals(computedPresentation,"V1 C V2 C");
 	}
 }
