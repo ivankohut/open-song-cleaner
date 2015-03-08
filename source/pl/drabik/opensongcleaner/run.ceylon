@@ -9,9 +9,6 @@ import org.apache.commons.lang3 {
 import java.text {
 	Normalizer
 }
-import javax.xml.transform {
-	Result
-}
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }

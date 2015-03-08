@@ -1,9 +1,6 @@
 import pl.drabik.opensongcleaner {
 	createSongFilename,
-	PartCodes,
-	Presentation,
 	OpenSongSongProcessor,
-	PresentationComputer,
 	OpenSongPresentationComputer,
 	ConstantPresentationComputer,
 	createOpenSongSong
