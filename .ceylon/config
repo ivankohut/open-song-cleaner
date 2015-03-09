@@ -6,4 +6,5 @@ encoding=UTF-8
 profile=default
 
 [repositories]
+remote=http://modules.ceylon-lang.org/modules
 remote=aether
