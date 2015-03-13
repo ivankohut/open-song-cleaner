@@ -25,7 +25,9 @@ shared class VypocetPrezentacie() {
 }
 
 shared class NaplneniePrezentacie() {
-	shared variable String staraHodnota = "";
+	registerConverters();
+	
+	shared variable String? staraHodnota = "";
 	shared variable String vypocitanaHodnota = "";
 	
 	shared String novaHodnota() {
@@ -33,7 +35,7 @@ shared class NaplneniePrezentacie() {
 		value presentationComputer = ConstantPresentationComputer(vypocitanaHodnota);
 		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer);
 
-		value song = createOpenSongSong(staraHodnota);
+		value song = createOpenSongSong(staraHodnota else "");
 		
 		try {
 			openSongSongProcessor.computeAndReplacePresentation(song);
