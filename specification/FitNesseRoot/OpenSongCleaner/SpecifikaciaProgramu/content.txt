@@ -1,0 +1,128 @@
+!*< Import
+!define TEST_SYSTEM {slim} 
+
+!include .OpenSongCleaner.ClassPathBuilder
+
+|Import                            |
+|pl.drabik.opensongcleaner.fixtures|
+*!
+!2 Spustenie programu
+
+Program má jeden povinný argument - adresár, v ktorom sa nachádzajú piesne vo formáte !-OpenSong-!. Adresár musí existovať a byť prístupný na čítanie.
+
+|Spustenie v systeme s adresarovou strukturou|existujuci/adresar/podadresar                                                     |
+|argumenty                                   |sprava?                                                                           |
+|[]                                          |chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]|
+|[adresar, dalsiArgument]                    |chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]|
+|[neexistujuci/adresar]                      |chyba[Adresár 'neexistujuci/adresar' neexistuje.]                                 |
+|[existujuci/adresar]                        |Spracúvam adresár 'existujuci/adresar'.                                           |
+
+!2 Výber súborov na spracovanie
+
+Program spracuje všetky !-OpenSong-! piesne nachádzajúce sa v danom adresári (nerekurzívne).
+Za !-OpenSong-! piesne považuje súbory bez prípony (súbory s príponami ignoruje). Súbory musia byť čitateľné aj zapisovateľné.
+
+|Vyber suborov na spracovanie            |
+|nazov suboru     |vybrany na spracovanie|
+|piesen.txt       |no                    |
+|piesen.xml       |no                    |
+|podadresar/piesen|no                    |
+|piesen           |yes                   |
+
+!2 Spracovanie súborov
+
+Spracovanie súboru znamená 
+ * kontrolu, resp. nastavenie XML elementu presentation
+ * kontrolu názvu súboru a premenovanie, ak nie je správny
+
+Začiatok a výsledok spracovania súboru sú zachytené v aplikačnom logu.
+
+!3 Naplnenie sekcie prezentácia zo slôh piesne
+
+Prezentácia obsahuje kódy slôh v poradí v akom sú uvedené v texte piesne. Ak text obsahuje refrén (kód "C"), tak tento je zopakovaný po každej slohe.
+ 
+|Vypocet prezentacie     |
+|text piesne|prezentacia?|
+|{{{[V1]
+ Haleluja!
+ Haleluja!
+ Haleluja!}}}|V1|
+|{{{[V1]
+ Hľa, pútnik z púšte sveta
+ sa náhli k domovu,
+ je v diaľke jeho méta:
+ dôjsť v náruč Kristovu.
+[V2]
+ Kto okúsil len kvapku
+ z tej čaše večnosti,
+ ten zanechá svet zmätku
+ a jeho márnosti.
+[V3]
+ Ó, šťastný pútnik zeme,
+ čo Krista miloval.
+ Tu, hľa, len telo zrieme,
+ však ducha Pán si vzal.}}}|V1 V2 V3|
+|{{{[V1]
+ Požehnaním Ty učiň ma,|Pane môj predrahý,
+ nech som Ti plný vďačnosti,|naveky poddaný.
+[C]
+ Nech nová pieseň zaznieva|zo srdca môjho vždy.
+ Požehnaním Ty učiň ma|pre smutné životy.
+[V2]
+ Požehnania mi, Pane môj,|do srdca hojne vlej,
+ plameňom Ducha svätého|k službe ma rozohrej.}}}|V1 C V2 C|
+
+
+Program naplní sekciu prezentácia (XML element '''presentation''') ak je prázdna. Ak je vyplnená, tak overí jej správnosť.
+
+|Naplnenie prezentacie                                                                               |
+|stara hodnota|vypocitana hodnota|nova hodnota?|sprava v logu?                                       |
+|             |V1 V2             |V1 V2        |Prezentácia vytvorená.                               |
+|V1 C V2 C    |V1 C V2 C         |V1 C V2 C    |                                                     |
+|V1 C V2      |V1 C V2 C         |V1 C V2      |Vypočítaná prezentácia nie je v súlade s existujúcou.|
+
+
+!3 Aktualizácia názvu súboru piesne
+Program skonštruuje názov súboru piesne na základe názvu a čísla piesne. Ak sa vypočítaný názov súboru nezhoduje so skutočným, tak program súbor premenuje na vypočítaný. 
+Potrebné XML elementy
+ * '''title''' - názov piesne 
+ * '''hym_number''' - číslo piesne 
+
+Pravidlá pre vytvorenie názvu súboru:
+ * z textu odstrániť diakritiku
+ * číslo zľava doplniť nulami, aby malo práve tri znaky
+ * medzi číslo a text názvu vložiť " - " (medzera, pomlčka, medzera)
+
+|Script         |Nazov suboru piesne                        |
+|piesen s cislom|2           |a nazvom|Vďaka, česť, Otče náš|
+|check          |nazov suboru|002 - Vdaka, cest, Otce nas   |
+
+!3 Aplikačný log
+
+Do aplikačného logu sa zapisujú 
+ * správy o začiatku spracovania súboru
+ * správy spracovania (s prefixom "- ")
+ * správy o chybách (s prefixom "! ")
+
+!* Kontext
+|Vysledky spracovania suborov                                                                              |
+|nazov suboru               |typ vysledku|sprava spracovania                                   |premenovany|
+|piesen                     |ok          |Prezentácia nastavená.                               |yes        |
+|154 - Velpiesen            |ok          |Prezentácia nastavená.                               |no         |
+|091 - Nova piesen          |ok          |                                                     |no         |
+|chybna piesen              |chyba       |Súbor nemá štruktúru !-OpenSong-! piesne.                |no         |
+|piesen so zlou prezentaciou|chyba       |Vypočítaná prezentácia nie je v súlade s existujúcou.|no         |
+
+*!
+
+|Query:Spravy v aplikacnom logu                         |
+|Spracúvam súbor 'piesen':                              |
+|- Prezentácia nastavená.                               |
+|- Súbor 'piesen' premenovaný na '048 - Piesen'.        |
+|Spracúvam súbor '154 - Velpiesen':                     |
+|- Prezentácia nastavená.                               |
+|Spracúvam súbor '091 - Nova piesen':                   |
+|Spracúvam súbor 'chybna piesen':                       |
+|! Súbor nemá štruktúru !-OpenSong-! piesne.                |
+|Spracúvam súbor 'piesen so zlou prezentaciou':         |
+|! Vypočítaná prezentácia nie je v súlade s existujúcou.|

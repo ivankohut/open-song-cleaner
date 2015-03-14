@@ -1,13 +1,7 @@
 !*< Import
 !define TEST_SYSTEM {slim} 
-
-!include OpenSongCleaner.ClassPathBuilder
-
-|Import                            |
-|pl.drabik.opensongcleaner.fixtures|
 *!
-
-!1 Poznámky
+!1 Čistenie !-OpenSong-! piesní
 
 Opravy dosiahnuteľné regulárnymi výrazmi (eclipse regex):
  * odstranit medzery nakonci riadkov
@@ -20,7 +14,6 @@ Opravy dosiahnuteľné regulárnymi výrazmi (eclipse regex):
   * na konci textu: rovnako ako vo vnutri textu
  * odsadenie textu na 
   * na jednu medzeru: zamen ^\s+([^\s<]) na <medzera>\1
-
   
 Opravy vyžadujúce tvorbu programu:  
  * vyrobit "presentation" pre vsetky piesne, ktore nemaju, aby fungovalo zobrazovanie cisel sloh
@@ -28,65 +21,7 @@ Opravy vyžadujúce tvorbu programu:
 
 !1 Špecifikácia
 
-!2 Naplnenie sekcie prezentácia zo slôh piesne
-
-Prezentácia obsahuje kódy slôh v poradí v akom sú uvedené v texte piesne. Ak text obsahuje refrén (kód "C"), tak tento je zopakovaný po každej slohe.
- 
-|Vypocet prezentacie     |
-|text piesne|prezentacia?|
-|{{{[V1]
- Haleluja!
- Haleluja!
- Haleluja!}}}|V1|
-|{{{[V1]
- Hľa, pútnik z púšte sveta
- sa náhli k domovu,
- je v diaľke jeho méta:
- dôjsť v náruč Kristovu.
-[V2]
- Kto okúsil len kvapku
- z tej čaše večnosti,
- ten zanechá svet zmätku
- a jeho márnosti.
-[V3]
- Ó, šťastný pútnik zeme,
- čo Krista miloval.
- Tu, hľa, len telo zrieme,
- však ducha Pán si vzal.}}}|V1 V2 V3|
-|{{{[V1]
- Požehnaním Ty učiň ma,|Pane môj predrahý,
- nech som Ti plný vďačnosti,|naveky poddaný.
-[C]
- Nech nová pieseň zaznieva|zo srdca môjho vždy.
- Požehnaním Ty učiň ma|pre smutné životy.
-[V2]
- Požehnania mi, Pane môj,|do srdca hojne vlej,
- plameňom Ducha svätého|k službe ma rozohrej.}}}|V1 C V2 C|
-
-
-Program naplní sekciu prezentácia (XML element '''presentation''') ak je prázdna. Ak je vyplnená, tak overí jej správnosť a v prípade nezhody vypíše chybovú správu s číslom piesne.
-
-|Naplnenie prezentacie                                                                        |
-|stara hodnota|vypocitana hodnota|nova hodnota?                                               |
-|             |V1 V2             |V1 V2                                                       |
-|V1 C V2 C    |V1 C V2 C         |V1 C V2 C                                                   |
-|V1 C V2      |V1 C V2 C         |chyba[Vypočítaná prezentácia nie je v súlade s existujúcou.]|
-
-
-!2 Aktualizácia názvov súborov piesní podľa názvov piesní
-Program premenuje súbory piesní v danom adresári. Potrebné XML elementy
- * '''title''' - názov piesne 
- * '''hym_number''' - číslo piesne 
-
-Pravidlá pre vytvorenie nového názvu súboru:
- * z textu odstrániť diakritiku
- * číslo zľava doplniť nulami, aby malo práve tri znaky
- * medzi číslo a text názvu vložiť " - " (medzera, pomlčka, medzera)
-
-|Script         |Nazov suboru piesne                        |
-|piesen s cislom|2           |a nazvom|Vďaka, česť, Otče náš|
-|check          |nazov suboru|002 - Vdaka, cest, Otce nas   |
-
+OpenSongCleaner.SpecifikaciaProgramu
 
 !1 Nastavenia
 
