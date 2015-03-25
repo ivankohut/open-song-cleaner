@@ -15,19 +15,19 @@ Program má jeden povinný argument - adresár, v ktorom sa nachádzajú piesne 
 |[]                                          |chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]|
 |[adresar, dalsiArgument]                    |chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]|
 |[neexistujuci/adresar]                      |chyba[Adresár 'neexistujuci/adresar' neexistuje.]                                 |
-|[existujuci/adresar]                        |Spracúvam adresár 'existujuci/adresar'.                                           |
+|[/Users/peter/Development]                  |Spracúvam adresár '/Users/peter/Development'.                                     |
 
 !2 Výber súborov na spracovanie
 
 Program spracuje všetky !-OpenSong-! piesne nachádzajúce sa v danom adresári (nerekurzívne).
 Za !-OpenSong-! piesne považuje súbory bez prípony (súbory s príponami ignoruje). Súbory musia byť čitateľné aj zapisovateľné.
 
-|Vyber suborov na spracovanie            |
-|nazov suboru     |vybrany na spracovanie|
-|piesen.txt       |no                    |
-|piesen.xml       |no                    |
-|podadresar/piesen|no                    |
-|piesen           |yes                   |
+|Vyber suborov na spracovanie             |
+|nazov suboru     |vybrany na spracovanie?|
+|piesen.txt       |false                  |
+|piesen.xml       |false                  |
+|podadresar/piesen|false                  |
+|piesen           |true                   |
 
 !2 Spracovanie súborov
 
@@ -110,12 +110,13 @@ Do aplikačného logu sa zapisujú
 |piesen                     |ok          |Prezentácia nastavená.                               |yes        |
 |154 - Velpiesen            |ok          |Prezentácia nastavená.                               |no         |
 |091 - Nova piesen          |ok          |                                                     |no         |
-|chybna piesen              |chyba       |Súbor nemá štruktúru !-OpenSong-! piesne.                |no         |
+|chybna piesen              |chyba       |Súbor nemá štruktúru !-OpenSong-! piesne.            |no         |
 |piesen so zlou prezentaciou|chyba       |Vypočítaná prezentácia nie je v súlade s existujúcou.|no         |
 
 *!
 
-|Query:Spravy v aplikacnom logu                         |
+|Ordered query:Spravy v aplikacnom logu                 |
+|zaznam v logu                                          |
 |Spracúvam súbor 'piesen':                              |
 |- Prezentácia nastavená.                               |
 |- Súbor 'piesen' premenovaný na '048 - Piesen'.        |
@@ -123,6 +124,6 @@ Do aplikačného logu sa zapisujú
 |- Prezentácia nastavená.                               |
 |Spracúvam súbor '091 - Nova piesen':                   |
 |Spracúvam súbor 'chybna piesen':                       |
-|! Súbor nemá štruktúru !-OpenSong-! piesne.                |
+|! Súbor nemá štruktúru !-OpenSong-! piesne.            |
 |Spracúvam súbor 'piesen so zlou prezentaciou':         |
 |! Vypočítaná prezentácia nie je v súlade s existujúcou.|
