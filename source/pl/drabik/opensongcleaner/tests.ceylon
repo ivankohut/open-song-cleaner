@@ -228,3 +228,55 @@ class OpenSongSongProcessorTest() {
 		}
 	}
 }
+
+
+class OpenSongCleanerTest() {
+	
+	test
+	shared void openSongCleanerWithNoArgumentsReturnsErrorMessage(){
+		
+		value sut = OpenSongCleaner();
+	
+		//exercise
+		sut.run([]);
+
+		//verify
+		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]");
+	}
+
+	test
+	shared void openSongCleanerWithTwoArgumentsReturnsErrorMessage(){
+		
+		value sut = OpenSongCleaner();
+		
+		//exercise
+		sut.run(["first","second"]);
+
+		//verify
+		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]");
+	}
+
+	test
+	shared void openSongCleanerWithArgumentNonExistingDirectoryReturnsErrorMessage(){
+		
+		value sut = OpenSongCleaner();
+		
+		//exercise
+		sut.run(["neexistujuci/adresar"]);
+
+		//verify
+		assertEquals(sut.lastLogMessage(),"chyba[Adresár 'neexistujuci/adresar' neexistuje.]");
+	}
+
+	test
+	shared void openSongCleanerWithArgumentExistingDirectoryReturnsPositiveMessage(){
+		
+		value sut = OpenSongCleaner();
+		
+		//exercise
+		sut.run(["/Users/peter/Development"]);
+
+		//verify
+		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/Development'.");
+	}
+}

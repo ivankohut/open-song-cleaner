@@ -12,8 +12,15 @@ import java.text {
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
+import ceylon.file {
+	parsePath,
+	Directory
+}
+import java.util {
+	ArrayList
+}
 
-
+	
 shared class SongFilenameProcessor() {
 
 	shared String removeAccents(String input) {
@@ -98,4 +105,55 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer) {
 			throw Exception("Vypočítaná prezentácia nie je v súlade s existujúcou.");
 		}
 	}
+}
+
+shared class OpenSongCleaner() {
+	
+	class OpenSongCleanerLog() {
+		variable ArrayList<String> log = ArrayList<String>();
+		
+		shared void printToLog(String message) {
+			print(message);
+			log.add(message);
+		}
+		
+		shared String lastMessage() {
+			return log.get(log.size()-1);
+		}
+	}
+
+	variable OpenSongCleanerLog log = OpenSongCleanerLog();
+	
+	void raiseError(String message) {
+		//throw Exception(message);
+		log.printToLog("chyba[``message``]");
+	}
+	
+	shared String lastLogMessage() {
+		return log.lastMessage();
+	}
+		
+	shared void run(String[] args) {
+		
+		if (args.size == 1) {
+			value directory = args[0];
+			assert(exists directory);
+			
+			value path = parsePath(directory);
+			if (is Directory loc = path.resource) {
+				log.printToLog("Spracúvam adresár '``directory``'.");
+				//TODO loop through all files and call OpenSongCleaner on each
+			} else {
+				raiseError("Adresár '``directory``' neexistuje.");
+			}
+		} else {
+			raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
+		}
+	}
+}
+
+"The runnable method of the module."
+shared void run() {
+	value openSongCleaner = OpenSongCleaner();
+	openSongCleaner.run(process.arguments);
 }

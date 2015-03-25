@@ -3,11 +3,65 @@ import pl.drabik.opensongcleaner {
 	OpenSongPresentationComputer,
 	ConstantPresentationComputer,
 	createOpenSongSong,
-	SongFilenameProcessor
+	SongFilenameProcessor,
+	OpenSongCleaner
 }
+
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
+
+import java.util {
+	JList = List,
+	JArrayList = ArrayList,
+	Iterator
+}
+
+import ceylon.collection {
+	ArrayList
+}
+
+import java.lang {
+	JString = String
+}
+
+
+shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
+	
+	String[] ceylonList(JArrayList<JString> jArrayList) {
+		variable ArrayList<JString> arrayList = ArrayList<JString>();
+		
+		Iterator<JString> iterator = jArrayList.iterator();
+		while (iterator.hasNext()) {
+			arrayList.add(iterator.next());
+		}
+		
+		String[] list = [ for (jString in arrayList) "``jString``"];
+
+		return list;
+	}
+	
+	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
+
+	shared String sprava() {
+		value openSongCleaner = OpenSongCleaner();	
+		
+		String[] argumentyList = ceylonList(argumenty);
+		
+		openSongCleaner.run(argumentyList);
+		return openSongCleaner.lastLogMessage();
+	}
+}
+
+shared class VyberSuborovNaSpracovanie() {
+	
+	shared variable String nazovSuboru = "";
+	
+	shared Boolean vybranyNaSpracovanie() {
+		return true;
+	}
+}
+
 shared class VypocetPrezentacie() {
 	
 	shared variable String textPiesne = "";
@@ -44,6 +98,10 @@ shared class NaplneniePrezentacie() {
 			return "chyba[``e.message``]";
 		}
 	}
+	
+	shared String spravaVLogu(){
+		return "";
+	}
 }
 
 shared class NazovSuboruPiesne() {
@@ -59,5 +117,37 @@ shared class NazovSuboruPiesne() {
 	shared String nazovSuboru() {
 		value songFilenameProcessor = SongFilenameProcessor();
 		return songFilenameProcessor.createSongFilename(nazov,cislo);
+	}
+}
+
+shared class VysledkySpracovaniaSuborov() {
+	
+	shared variable String nazovSuboru = "";
+	shared variable String typVysledku = "";
+	shared variable String spravaSpracovania = "";
+	shared variable String premenovany = "";
+}
+
+shared class SpravyVAplikacnomLogu() {
+	
+	JList<Object> list(Object* objects) {
+		value jArrayList = JArrayList<Object>();
+		for (myObject in objects) {
+			jArrayList.add(myObject);
+		}
+		return jArrayList;
+	}
+	
+	shared JList<Object> query() {
+		
+		return 
+		list(
+			list(
+				list("zaznam v logu","Spracúvam súbor 'piesen':")
+			),
+			list(
+				list("zaznam v logu","- Prezentácia nastavená.")
+			)
+		);
 	}
 }
