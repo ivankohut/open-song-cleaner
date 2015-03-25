@@ -93,7 +93,9 @@ shared class OpenSongPresentationComputer() satisfies PresentationComputer {
 }
 
 
-shared class OpenSongSongProcessor(PresentationComputer presentationComputer) {
+shared class OpenSongSongProcessor(PresentationComputer presentationComputer, OpenSongCleanerLog openSongCleanerLog) {
+	
+	variable OpenSongCleanerLog log = openSongCleanerLog;
 	
 	shared void computeAndReplacePresentation(OpenSongSong song) {
 		value oldPresentation = song.presentation; 
@@ -101,27 +103,17 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer) {
 		
 		if (oldPresentation=="") {
 			song.presentation = newPresentation;
+			log.printToLog("Prezentácia vytvorená.");
 		} else if (oldPresentation!=newPresentation){
-			throw Exception("Vypočítaná prezentácia nie je v súlade s existujúcou.");
+			log.printToLog("Vypočítaná prezentácia nie je v súlade s existujúcou.");
+		} else {
+			log.printToLog("");//TODO: satisfies specification, but not nice
 		}
 	}
 }
 
 shared class OpenSongCleaner() {
 	
-	class OpenSongCleanerLog() {
-		variable ArrayList<String> log = ArrayList<String>();
-		
-		shared void printToLog(String message) {
-			print(message);
-			log.add(message);
-		}
-		
-		shared String lastMessage() {
-			return log.get(log.size()-1);
-		}
-	}
-
 	variable OpenSongCleanerLog log = OpenSongCleanerLog();
 	
 	void raiseError(String message) {
@@ -156,4 +148,22 @@ shared class OpenSongCleaner() {
 shared void run() {
 	value openSongCleaner = OpenSongCleaner();
 	openSongCleaner.run(process.arguments);
+}
+
+
+shared class OpenSongCleanerLog() {
+	variable ArrayList<String> log = ArrayList<String>();
+	
+	shared void printToLog(String message) {
+		print(message);
+		log.add(message);
+	}
+	
+	shared String lastMessage() {
+		if (log.size() == 0) {
+			return "";
+		} else {
+			return log.get(log.size()-1);
+		}
+	}
 }

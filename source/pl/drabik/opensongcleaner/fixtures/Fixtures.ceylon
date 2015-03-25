@@ -4,7 +4,8 @@ import pl.drabik.opensongcleaner {
 	ConstantPresentationComputer,
 	createOpenSongSong,
 	SongFilenameProcessor,
-	OpenSongCleaner
+	OpenSongCleaner,
+	OpenSongCleanerLog
 }
 
 import pl.drabik.opensongcleaner.opensong {
@@ -71,7 +72,7 @@ shared class VypocetPrezentacie() {
 		song.lyrics =  textPiesne;
 		song.presentation = "";
 		
-		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer());
+		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),OpenSongCleanerLog());
 		songProcessor.computeAndReplacePresentation(song);
 		
 		return song.presentation;
@@ -84,10 +85,13 @@ shared class NaplneniePrezentacie() {
 	shared variable String? staraHodnota = "";
 	shared variable String vypocitanaHodnota = "";
 	
+	variable OpenSongCleanerLog log = OpenSongCleanerLog();
+
+	
 	shared String novaHodnota() {
 		
 		value presentationComputer = ConstantPresentationComputer(vypocitanaHodnota);
-		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer);
+		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong(staraHodnota else "");
 		
@@ -100,7 +104,7 @@ shared class NaplneniePrezentacie() {
 	}
 	
 	shared String spravaVLogu(){
-		return "";
+		return log.lastMessage();
 	}
 }
 

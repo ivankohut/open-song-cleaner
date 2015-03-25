@@ -1,7 +1,6 @@
 import ceylon.test {
 	test,
-	assertEquals,
-	fail
+	assertEquals
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
@@ -179,10 +178,11 @@ shared OpenSongSong createOpenSongSong(String presentation) {
 class OpenSongSongProcessorTest() {
 	
 	test
-	shared void songWithEmptyPresentationGetsComputedPresentation() {
+	shared void songWithEmptyPresentationGetsComputedPresentationAndSuccessMessageIsLogged() {
 		value computedPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value sut = OpenSongSongProcessor(presentationComputer);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong{presentation="";};
 		
@@ -194,10 +194,11 @@ class OpenSongSongProcessorTest() {
 	}
 	
 	test 
-	shared void songWithCorrectPresentationStaysTheSame(){
+	shared void songWithCorrectPresentationStaysTheSameAndEmptyMessageIsLogged(){
 		value existingPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(existingPresentation);
-		value sut = OpenSongSongProcessor(presentationComputer);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong{presentation=existingPresentation;};
 		
@@ -206,26 +207,25 @@ class OpenSongSongProcessorTest() {
 		
 		//verify
 		assertEquals(song.presentation,existingPresentation);
+		assertEquals(log.lastMessage(),"");
 	}
 	
 	test 
-	shared void songWithWrongPresentationThrowsErrorMessageWhenComputingPresentation(){
+	shared void songWithWrongPresentationStaysTheSameAndErrorIsLogged(){
 		value computedPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value sut = OpenSongSongProcessor(presentationComputer);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value existingPresentation = computedPresentation + " V3";
 		value song = createOpenSongSong{presentation=existingPresentation;};
 		
 		//exercise
-		try {
-			sut.computeAndReplacePresentation(song);
-			fail();
-		}
+		sut.computeAndReplacePresentation(song);
+		
 		//verify
-		catch (Exception e){
-			assertEquals(e.message,"Vypočítaná prezentácia nie je v súlade s existujúcou.");
-		}
+		assertEquals(song.presentation,existingPresentation);
+		assertEquals(log.lastMessage(),"Vypočítaná prezentácia nie je v súlade s existujúcou.");
 	}
 }
 
