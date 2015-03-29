@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Song_QNAME = new QName("", "song");
+    private final static QName _Song_QNAME = new QName("", "open-song-song");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: pl.drabik.opensongcleaner.opensong
@@ -60,7 +60,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link OpenSongSong }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "song")
+    @XmlElementDecl(namespace = "", name = "open-song-song")
     public JAXBElement<OpenSongSong> createSong(OpenSongSong value) {
         return new JAXBElement<OpenSongSong>(_Song_QNAME, OpenSongSong.class, null, value);
     }

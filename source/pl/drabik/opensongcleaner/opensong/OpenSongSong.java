@@ -52,7 +52,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  * 
  */
-@XmlRootElement(name = "OpenSongSong")
+@XmlRootElement(name = "song")
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
 	"title",
