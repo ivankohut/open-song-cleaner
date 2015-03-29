@@ -1,6 +1,8 @@
 import ceylon.test {
 	test,
-	assertEquals
+	assertEquals,
+	assertFalse,
+	assertTrue
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
@@ -274,9 +276,61 @@ class OpenSongCleanerTest() {
 		value sut = OpenSongCleaner();
 		
 		//exercise
-		sut.run(["/Users/peter/Development"]);
+		sut.run(["/Users/peter/git/bratske-piesne"]);
 
 		//verify
-		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/Development'.");
+		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/git/bratske-piesne'.");
+	}
+}
+
+
+class FilenamePickerTest() {
+	
+	test
+	shared void filenameWithExtensionTxtIsNotPicked() {
+		
+		value sut = FilenamePicker();
+		
+		//exercise
+		value shouldPickFilename = sut.shouldPick("song.txt");
+		
+		//verify
+		assertFalse(shouldPickFilename);
+	}
+
+	test
+	shared void filenameWithExtensionXmlIsNotPicked() {
+		
+		value sut = FilenamePicker();
+		
+		//exercise
+		value shouldPickFilename = sut.shouldPick("song.xml");
+		
+		//verify
+		assertFalse(shouldPickFilename);
+	}
+
+	test
+	shared void filenameWithSubfolderIsNotPicked() {
+		
+		value sut = FilenamePicker();
+		
+		//exercise
+		value shouldPickFilename = sut.shouldPick("subfolder/song");
+		
+		//verify
+		assertFalse(shouldPickFilename);
+	}
+
+	test
+	shared void filenameWithoutSubfolderAndExtensionIsPicked() {
+		
+		value sut = FilenamePicker();
+		
+		//exercise
+		value shouldPickFilename = sut.shouldPick("song");
+		
+		//verify
+		assertTrue(shouldPickFilename);
 	}
 }

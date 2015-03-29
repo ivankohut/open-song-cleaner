@@ -9,15 +9,35 @@ import org.apache.commons.lang3 {
 import java.text {
 	Normalizer
 }
+
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
+
 import ceylon.file {
 	parsePath,
-	Directory
+	Directory,
+	Nil,
+	File,
+	Path
 }
+
 import java.util {
 	ArrayList
+}
+
+import javax.xml.bind {
+	JAXBContext,
+	Marshaller,
+	Unmarshaller
+}
+
+import java.lang {
+	JBoolean=Boolean
+}
+
+import java.io{
+	JFile=File
 }
 
 	
@@ -103,7 +123,7 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 		
 		if (oldPresentation=="") {
 			song.presentation = newPresentation;
-			log.printToLog("Prezentácia vytvorená.");
+			log.printToLog("Prezentácia nastavená.");
 		} else if (oldPresentation!=newPresentation){
 			log.printToLog("Vypočítaná prezentácia nie je v súlade s existujúcou.");
 		} else {
@@ -114,30 +134,92 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 
 shared class OpenSongCleaner() {
 	
-	variable OpenSongCleanerLog log = OpenSongCleanerLog();
+	variable OpenSongCleanerLog openSongCleanerLog = OpenSongCleanerLog();
 	
 	void raiseError(String message) {
 		//throw Exception(message);
-		log.printToLog("chyba[``message``]");
+		log("chyba[``message``]");
+	}
+	
+	void log(String message) {
+		openSongCleanerLog.printToLog(message);
 	}
 	
 	shared String lastLogMessage() {
-		return log.lastMessage();
+		return openSongCleanerLog.lastMessage();
 	}
 		
-	shared void run(String[] args) {
+	shared OpenSongSong readOpenSongSongFromXml(File file) {
+		JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		JFile jFile  = JFile(file.path.string);
+		try {
+			Object openSongSong = jaxbUnmarshaller.unmarshal(jFile);
+			assert(is OpenSongSong openSongSong);
+			return openSongSong;
+		} catch (Exception e) {
+			raiseError("Súbor nemá štruktúru OpenSong piesne.");
+			throw e;
+		}
+	}
 		
-		if (args.size == 1) {
-			value directory = args[0];
-			assert(exists directory);
-			
-			value path = parsePath(directory);
-			if (is Directory loc = path.resource) {
-				log.printToLog("Spracúvam adresár '``directory``'.");
-				//TODO loop through all files and call OpenSongCleaner on each
+	shared void processOpenSongSong(OpenSongSong openSongSong) {
+		value presentationComputer = OpenSongPresentationComputer();
+		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,openSongCleanerLog);
+		openSongSongProcessor.computeAndReplacePresentation(openSongSong);
+	}
+		
+	shared void writeOpenSongSongToXml(OpenSongSong openSongSong, File file) {
+		JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
+		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+		jaxbMarshaller.setProperty(Marshaller.\iJAXB_FORMATTED_OUTPUT, JBoolean.\iTRUE);
+		JFile jFile  = JFile(file.path.string);
+		jaxbMarshaller.marshal(openSongSong,jFile); 
+	}
+	
+	shared void renameFileAccordingToOpenSongSongInfo(Path path, File file, OpenSongSong openSongSong) {
+		value songFilenameProcessor = SongFilenameProcessor();
+		value songFilename = songFilenameProcessor.createSongFilename(openSongSong.title,openSongSong.hymnNumber.intValue());
+		if (songFilename != file.name) {
+			value newPath = path.childPath(songFilename);
+			if (is Nil loc = newPath.resource) {
+				file.move(loc);
+				log("Súbor '``file.name``' premenovaný na '``songFilename``'.");
 			} else {
-				raiseError("Adresár '``directory``' neexistuje.");
+				raiseError("target file already exists");
 			}
+		}
+	}
+	
+	void runOnEachFileInDirectory(String directory) {
+			
+		value path = parsePath(directory);
+		value filenamePicker = FilenamePicker();
+
+		if (is Directory dir = path.resource) {
+			log("Spracúvam adresár '``directory``'.");
+
+			for (file in dir.files()) {
+				if (filenamePicker.shouldPick(file.name)) {
+					log("Spracúvam súbor '``file.name``':");
+					
+					OpenSongSong openSongSong = readOpenSongSongFromXml(file);
+					processOpenSongSong(openSongSong);
+					writeOpenSongSongToXml(openSongSong, file);
+					renameFileAccordingToOpenSongSongInfo(path, file, openSongSong);
+				}
+			}
+		} else {
+			raiseError("Adresár '``directory``' neexistuje.");
+		}
+	}
+	
+	shared void run(String[] args) {
+	
+		if (args.size == 1) {
+			value directoryString = args[0];
+			assert (exists directoryString);
+			runOnEachFileInDirectory(directoryString);
 		} else {
 			raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
 		}
@@ -165,5 +247,16 @@ shared class OpenSongCleanerLog() {
 		} else {
 			return log.get(log.size()-1);
 		}
+	}
+}
+
+
+shared class FilenamePicker() {
+	shared Boolean shouldPick(String filename) {
+		variable Boolean output = true;
+		for (char in {'.','/','\\'} ) {
+			output = output && !filename.contains(char);
+		}
+		return output;
 	}
 }

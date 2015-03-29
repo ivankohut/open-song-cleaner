@@ -5,7 +5,8 @@ import pl.drabik.opensongcleaner {
 	createOpenSongSong,
 	SongFilenameProcessor,
 	OpenSongCleaner,
-	OpenSongCleanerLog
+	OpenSongCleanerLog,
+	FilenamePicker
 }
 
 import pl.drabik.opensongcleaner.opensong {
@@ -59,7 +60,8 @@ shared class VyberSuborovNaSpracovanie() {
 	shared variable String nazovSuboru = "";
 	
 	shared Boolean vybranyNaSpracovanie() {
-		return true;
+		value filenamePicker = FilenamePicker();
+		return filenamePicker.shouldPick(nazovSuboru);
 	}
 }
 
