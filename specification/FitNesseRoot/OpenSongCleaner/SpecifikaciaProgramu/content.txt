@@ -77,7 +77,7 @@ Program naplní sekciu prezentácia (XML element '''presentation''') ak je práz
 
 |Naplnenie prezentacie                                                                               |
 |stara hodnota|vypocitana hodnota|nova hodnota?|sprava v logu?                                       |
-|             |V1 V2             |V1 V2        |Prezentácia vytvorená.                               |
+|             |V1 V2             |V1 V2        |Prezentácia nastavená.                               |
 |V1 C V2 C    |V1 C V2 C         |V1 C V2 C    |                                                     |
 |V1 C V2      |V1 C V2 C         |V1 C V2      |Vypočítaná prezentácia nie je v súlade s existujúcou.|
 
@@ -86,7 +86,7 @@ Program naplní sekciu prezentácia (XML element '''presentation''') ak je práz
 Program skonštruuje názov súboru piesne na základe názvu a čísla piesne. Ak sa vypočítaný názov súboru nezhoduje so skutočným, tak program súbor premenuje na vypočítaný. 
 Potrebné XML elementy
  * '''title''' - názov piesne 
- * '''hym_number''' - číslo piesne 
+ * '''hymn_number''' - číslo piesne 
 
 Pravidlá pre vytvorenie názvu súboru:
  * z textu odstrániť diakritiku
