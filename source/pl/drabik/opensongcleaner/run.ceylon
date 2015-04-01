@@ -192,9 +192,10 @@ shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
 		jaxbMarshaller.marshal(openSongSong,jFile); 
 	}
 	
-	shared void renameFileAccordingToOpenSongSongInfo(Directory dir, File file, String newFilename) {
+	shared void renameFile(File file, String newFilename) {
 		if (newFilename != file.name) {
-			value newPath = dir.path.childPath(newFilename);
+			value newPath = file.path.siblingPath(newFilename); 
+			//dir.path.childPath(newFilename);
 			if (is Nil loc = newPath.resource) {
 				file.move(loc);
 				log.printToLog("Súbor '``file.name``' premenovaný na '``newFilename``'.");
@@ -216,7 +217,7 @@ shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
 				OpenSongSong openSongSong = readOpenSongSongFromXml(file);
 				value newFilename = processOpenSongSong(openSongSong);
 				writeOpenSongSongToXml(openSongSong, file);
-				renameFileAccordingToOpenSongSongInfo(dir, file, newFilename);
+				renameFile(file, newFilename);
 			}
 		}
 	}
