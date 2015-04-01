@@ -113,9 +113,7 @@ shared class OpenSongPresentationComputer() satisfies PresentationComputer {
 }
 
 
-shared class OpenSongSongProcessor(PresentationComputer presentationComputer, OpenSongCleanerLog openSongCleanerLog) {
-	
-	variable OpenSongCleanerLog log = openSongCleanerLog;
+shared class OpenSongSongProcessor(PresentationComputer presentationComputer, OpenSongCleanerLog log) {
 	
 	shared void computeAndReplacePresentation(OpenSongSong song) {
 		value oldPresentation = song.presentation; 
@@ -133,18 +131,11 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 }
 
 
-shared class OpenSongCleaner(String[] args
-) {
+shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
 	
-	variable OpenSongCleanerLog openSongCleanerLog = OpenSongCleanerLog();
-	
-	void log(String message) {
-		openSongCleanerLog.printToLog(message);
-	}
-
 	void raiseError(String message) {
 		//throw Exception(message);
-		log("chyba[``message``]");
+		log.printToLog("chyba[``message``]");
 	}
 
 	function getDirectory(String[] args) {
@@ -167,7 +158,7 @@ shared class OpenSongCleaner(String[] args
 	value directory = getDirectory(args);
 		
 	shared String lastLogMessage() {
-		return openSongCleanerLog.lastMessage();
+		return log.lastMessage();
 	}
 		
 	shared OpenSongSong readOpenSongSongFromXml(File file) {
@@ -186,7 +177,7 @@ shared class OpenSongCleaner(String[] args
 		
 	shared String processOpenSongSong(OpenSongSong openSongSong) {
 		value presentationComputer = OpenSongPresentationComputer();
-		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,openSongCleanerLog);
+		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
 		openSongSongProcessor.computeAndReplacePresentation(openSongSong);
 		
 		value songFilenameProcessor = SongFilenameProcessor();
@@ -206,7 +197,7 @@ shared class OpenSongCleaner(String[] args
 			value newPath = dir.path.childPath(newFilename);
 			if (is Nil loc = newPath.resource) {
 				file.move(loc);
-				log("Súbor '``file.name``' premenovaný na '``newFilename``'.");
+				log.printToLog("Súbor '``file.name``' premenovaný na '``newFilename``'.");
 			} else {
 				raiseError("target file already exists");
 			}
@@ -216,11 +207,11 @@ shared class OpenSongCleaner(String[] args
 	void runOnEachFileInDirectory(Directory dir) {
 			
 		value filenamePicker = FilenamePicker();
-		log("Spracúvam adresár '``directory``'.");
+		log.printToLog("Spracúvam adresár '``directory``'.");
 
 		for (file in dir.files()) {
 			if (filenamePicker.shouldPick(file.name)) {
-				log("Spracúvam súbor '``file.name``':");
+				log.printToLog("Spracúvam súbor '``file.name``':");
 				
 				OpenSongSong openSongSong = readOpenSongSongFromXml(file);
 				value newFilename = processOpenSongSong(openSongSong);
@@ -238,13 +229,14 @@ shared class OpenSongCleaner(String[] args
 
 "The runnable method of the module."
 shared void run() {
-	value openSongCleaner = OpenSongCleaner(process.arguments);
+	value log = OpenSongCleanerLog();
+	value openSongCleaner = OpenSongCleaner(process.arguments, log);
 	openSongCleaner.run();
 }
 
 
 shared class OpenSongCleanerLog() {
-	//TODO: bring log to top level
+
 	variable ArrayList<String> log = ArrayList<String>();
 	
 	shared void printToLog(String message) {

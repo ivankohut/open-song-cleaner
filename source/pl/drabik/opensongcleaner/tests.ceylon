@@ -237,7 +237,8 @@ class OpenSongCleanerTest() {
 	test
 	shared void openSongCleanerRunExecutedWithNoArgumentsReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner([]);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongCleaner([],log);
 	
 		//exercise
 		sut.run();
@@ -249,7 +250,8 @@ class OpenSongCleanerTest() {
 	test
 	shared void openSongCleanerRunExecutedWithTwoArgumentsReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner([]);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongCleaner([],log);
 		
 		//exercise
 		sut.run();
@@ -261,7 +263,8 @@ class OpenSongCleanerTest() {
 	test
 	shared void openSongCleanerRunExecutedWithArgumentNonExistingDirectoryReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner(["neexistujuci/adresar"]);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongCleaner([],log);
 		
 		//exercise
 		sut.run();
@@ -273,7 +276,8 @@ class OpenSongCleanerTest() {
 	test
 	shared void openSongCleanerRunExecutedWithArgumentExistingDirectoryReturnsPositiveMessage(){
 		
-		value sut = OpenSongCleaner(["/Users/peter/Downloads/piesne"]);
+		value log = OpenSongCleanerLog();
+		value sut = OpenSongCleaner([],log);
 		
 		//exercise
 		sut.run();

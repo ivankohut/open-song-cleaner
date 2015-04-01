@@ -48,7 +48,8 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared String sprava() {
 		String[] argumentyList = ceylonList(argumenty);
 
-		value openSongCleaner = OpenSongCleaner(argumentyList);	
+		value log = OpenSongCleanerLog();
+		value openSongCleaner = OpenSongCleaner(argumentyList,log);	
 
 		openSongCleaner.run();
 		return openSongCleaner.lastLogMessage();
