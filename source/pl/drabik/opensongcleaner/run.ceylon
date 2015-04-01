@@ -132,19 +132,40 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 	}
 }
 
-shared class OpenSongCleaner() {
+
+shared class OpenSongCleaner(String[] args
+) {
 	
 	variable OpenSongCleanerLog openSongCleanerLog = OpenSongCleanerLog();
-	
-	void raiseError(String message) {
-		//throw Exception(message);
-		log("chyba[``message``]");
-	}
 	
 	void log(String message) {
 		openSongCleanerLog.printToLog(message);
 	}
+
+	void raiseError(String message) {
+		//throw Exception(message);
+		log("chyba[``message``]");
+	}
+
+	function getDirectory(String[] args) {
+		if (args.size == 1) {
+			value directoryString = args[0];
+			assert (exists directoryString);
+			value path = parsePath(directoryString);
+			if (is Directory dir = path.resource) {
+				return dir;
+			} else {
+				raiseError("Adresár '``directoryString``' neexistuje.");
+				assert(false);
+			}
+		} else {
+			raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
+			assert(false);
+		}
+	}
 	
+	value directory = getDirectory(args);
+		
 	shared String lastLogMessage() {
 		return openSongCleanerLog.lastMessage();
 	}
@@ -163,10 +184,13 @@ shared class OpenSongCleaner() {
 		}
 	}
 		
-	shared void processOpenSongSong(OpenSongSong openSongSong) {
+	shared String processOpenSongSong(OpenSongSong openSongSong) {
 		value presentationComputer = OpenSongPresentationComputer();
 		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,openSongCleanerLog);
 		openSongSongProcessor.computeAndReplacePresentation(openSongSong);
+		
+		value songFilenameProcessor = SongFilenameProcessor();
+		return songFilenameProcessor.createSongFilename(openSongSong.title,openSongSong.hymnNumber.intValue());
 	}
 		
 	shared void writeOpenSongSongToXml(OpenSongSong openSongSong, File file) {
@@ -177,63 +201,50 @@ shared class OpenSongCleaner() {
 		jaxbMarshaller.marshal(openSongSong,jFile); 
 	}
 	
-	shared void renameFileAccordingToOpenSongSongInfo(Path path, File file, OpenSongSong openSongSong) {
-		value songFilenameProcessor = SongFilenameProcessor();
-		value songFilename = songFilenameProcessor.createSongFilename(openSongSong.title,openSongSong.hymnNumber.intValue());
-		if (songFilename != file.name) {
-			value newPath = path.childPath(songFilename);
+	shared void renameFileAccordingToOpenSongSongInfo(Directory dir, File file, String newFilename) {
+		if (newFilename != file.name) {
+			value newPath = dir.path.childPath(newFilename);
 			if (is Nil loc = newPath.resource) {
 				file.move(loc);
-				log("Súbor '``file.name``' premenovaný na '``songFilename``'.");
+				log("Súbor '``file.name``' premenovaný na '``newFilename``'.");
 			} else {
 				raiseError("target file already exists");
 			}
 		}
 	}
 	
-	void runOnEachFileInDirectory(String directory) {
+	void runOnEachFileInDirectory(Directory dir) {
 			
-		value path = parsePath(directory);
 		value filenamePicker = FilenamePicker();
+		log("Spracúvam adresár '``directory``'.");
 
-		if (is Directory dir = path.resource) {
-			log("Spracúvam adresár '``directory``'.");
-
-			for (file in dir.files()) {
-				if (filenamePicker.shouldPick(file.name)) {
-					log("Spracúvam súbor '``file.name``':");
-					
-					OpenSongSong openSongSong = readOpenSongSongFromXml(file);
-					processOpenSongSong(openSongSong);
-					writeOpenSongSongToXml(openSongSong, file);
-					renameFileAccordingToOpenSongSongInfo(path, file, openSongSong);
-				}
+		for (file in dir.files()) {
+			if (filenamePicker.shouldPick(file.name)) {
+				log("Spracúvam súbor '``file.name``':");
+				
+				OpenSongSong openSongSong = readOpenSongSongFromXml(file);
+				value newFilename = processOpenSongSong(openSongSong);
+				writeOpenSongSongToXml(openSongSong, file);
+				renameFileAccordingToOpenSongSongInfo(dir, file, newFilename);
 			}
-		} else {
-			raiseError("Adresár '``directory``' neexistuje.");
 		}
 	}
 	
-	shared void run(String[] args) {
-	
-		if (args.size == 1) {
-			value directoryString = args[0];
-			assert (exists directoryString);
-			runOnEachFileInDirectory(directoryString);
-		} else {
-			raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
-		}
+	shared void run() {
+		runOnEachFileInDirectory(directory);
 	}
+	
 }
 
 "The runnable method of the module."
 shared void run() {
-	value openSongCleaner = OpenSongCleaner();
-	openSongCleaner.run(process.arguments);
+	value openSongCleaner = OpenSongCleaner(process.arguments);
+	openSongCleaner.run();
 }
 
 
 shared class OpenSongCleanerLog() {
+	//TODO: bring log to top level
 	variable ArrayList<String> log = ArrayList<String>();
 	
 	shared void printToLog(String message) {
@@ -252,6 +263,11 @@ shared class OpenSongCleanerLog() {
 
 
 shared class FilenamePicker() {
+//TODO: iba testuje priponu
+//TODO: vo forme wrappera Directory
+//TODO: prerobit fixturu, robi skutocne subory
+
+	
 	shared Boolean shouldPick(String filename) {
 		variable Boolean output = true;
 		for (char in {'.','/','\\'} ) {
@@ -260,3 +276,6 @@ shared class FilenamePicker() {
 		return output;
 	}
 }
+
+
+//TODO: new class OpenSongSongSerializer

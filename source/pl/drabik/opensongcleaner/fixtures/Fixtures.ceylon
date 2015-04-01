@@ -46,11 +46,11 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
 
 	shared String sprava() {
-		value openSongCleaner = OpenSongCleaner();	
-		
 		String[] argumentyList = ceylonList(argumenty);
-		
-		openSongCleaner.run(argumentyList);
+
+		value openSongCleaner = OpenSongCleaner(argumentyList);	
+
+		openSongCleaner.run();
 		return openSongCleaner.lastLogMessage();
 	}
 }
@@ -131,7 +131,18 @@ shared class VysledkySpracovaniaSuborov() {
 	shared variable String nazovSuboru = "";
 	shared variable String typVysledku = "";
 	shared variable String spravaSpracovania = "";
-	shared variable String premenovany = "";
+	shared variable Boolean premenovany = false;
+	
+	shared void compute(){
+		kontext.riadky.add(Riadok(nazovSuboru,typVysledku,spravaSpracovania,premenovany));
+	}
+}
+
+shared class Riadok(shared String nazovSuboru, shared String typVysledku, shared String spravaSpracovania, shared Boolean premenovany) {
+}
+
+object kontext {
+	shared ArrayList<Riadok> riadky = ArrayList<Riadok>(); 
 }
 
 shared class SpravyVAplikacnomLogu() {

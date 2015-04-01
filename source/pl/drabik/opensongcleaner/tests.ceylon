@@ -235,52 +235,81 @@ class OpenSongSongProcessorTest() {
 class OpenSongCleanerTest() {
 	
 	test
-	shared void openSongCleanerWithNoArgumentsReturnsErrorMessage(){
+	shared void openSongCleanerRunExecutedWithNoArgumentsReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner();
+		value sut = OpenSongCleaner([]);
 	
 		//exercise
-		sut.run([]);
+		sut.run();
 
 		//verify
 		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]");
 	}
 
 	test
-	shared void openSongCleanerWithTwoArgumentsReturnsErrorMessage(){
+	shared void openSongCleanerRunExecutedWithTwoArgumentsReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner();
+		value sut = OpenSongCleaner([]);
 		
 		//exercise
-		sut.run(["first","second"]);
+		sut.run();
 
 		//verify
 		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]");
 	}
 
 	test
-	shared void openSongCleanerWithArgumentNonExistingDirectoryReturnsErrorMessage(){
+	shared void openSongCleanerRunExecutedWithArgumentNonExistingDirectoryReturnsErrorMessage(){
 		
-		value sut = OpenSongCleaner();
+		value sut = OpenSongCleaner(["neexistujuci/adresar"]);
 		
 		//exercise
-		sut.run(["neexistujuci/adresar"]);
+		sut.run();
 
 		//verify
 		assertEquals(sut.lastLogMessage(),"chyba[Adresár 'neexistujuci/adresar' neexistuje.]");
 	}
 
 	test
-	shared void openSongCleanerWithArgumentExistingDirectoryReturnsPositiveMessage(){
+	shared void openSongCleanerRunExecutedWithArgumentExistingDirectoryReturnsPositiveMessage(){
 		
-		value sut = OpenSongCleaner();
+		value sut = OpenSongCleaner(["/Users/peter/Downloads/piesne"]);
 		
 		//exercise
-		sut.run(["/Users/peter/git/bratske-piesne"]);
+		sut.run();
 
 		//verify
-		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/git/bratske-piesne'.");
+		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/Downloads/piesne'.");
 	}
+	
+	test
+	shared void todo() {
+		//exercise
+		//TODO: test1 -- write xml, read and unmarshal
+		//TODO: test2 -- ...
+		//shared void peter() {
+		//	value openSongCleaner = OpenSongCleaner();
+		//	openSongCleaner.run(["/Users/peter/Downloads/piesne"]);
+		//}
+
+		//verify
+		assertTrue(true);
+	}
+}
+
+
+class OpenSongCleanerLogTest(){
+
+	test
+	shared void todo() {
+		
+		
+		//exercise
+		
+		
+		//verify
+		assertTrue(true);
+	}	
 }
 
 
@@ -334,3 +363,4 @@ class FilenamePickerTest() {
 		assertTrue(shouldPickFilename);
 	}
 }
+
