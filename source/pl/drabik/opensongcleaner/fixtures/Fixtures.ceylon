@@ -6,7 +6,8 @@ import pl.drabik.opensongcleaner {
 	SongFilenameProcessor,
 	OpenSongCleaner,
 	OpenSongCleanerLog,
-	FilenamePicker
+	FilenamePicker,
+	FilenamePickerTest
 }
 
 import pl.drabik.opensongcleaner.opensong {
@@ -25,6 +26,9 @@ import ceylon.collection {
 
 import java.lang {
 	JString = String
+}
+import ceylon.file {
+	Directory
 }
 
 
@@ -46,6 +50,7 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
 
 	shared String sprava() {
+		//TODO: prerobit fixturu, robi skutocne subory
 		String[] argumentyList = ceylonList(argumenty);
 
 		value log = OpenSongCleanerLog();
@@ -61,8 +66,31 @@ shared class VyberSuborovNaSpracovanie() {
 	shared variable String nazovSuboru = "";
 	
 	shared Boolean vybranyNaSpracovanie() {
-		value filenamePicker = FilenamePicker();
-		return filenamePicker.shouldPick(nazovSuboru);
+		value filenamePickerTest = FilenamePickerTest();
+		
+		variable String fileName = nazovSuboru;
+		variable Directory dir = filenamePickerTest.returnTestDir();
+		
+		//check if path contains subdir
+		value filenameSplit = fileName.split(
+			(char) => {'/'}.contains(char)
+		);
+		//if path contains subdir
+		if (filenameSplit.size>1) {
+			value filenameSplitSeq = filenameSplit.sequence();
+			value subdirString = filenameSplitSeq[0];
+			assert(is String subdirString);
+			value subdir = filenamePickerTest.createSubdirectory(dir, subdirString);
+			value filenameParsed = filenameSplitSeq[1];
+			//TODO: refactor
+			assert(is String filenameParsed);
+			fileName = filenameParsed;
+			filenamePickerTest.createFile(subdir,fileName);
+		} else {
+			filenamePickerTest.createFile(dir,fileName);
+		}
+		value filenamePicker = FilenamePicker(dir);
+		return filenamePickerTest.checkThatFilenameIsPicked(filenamePicker,fileName);
 	}
 }
 

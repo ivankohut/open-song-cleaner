@@ -207,18 +207,16 @@ shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
 	
 	void runOnEachFileInDirectory(Directory dir) {
 			
-		value filenamePicker = FilenamePicker();
+		value filenamePicker = FilenamePicker(dir);
 		log.printToLog("Spracúvam adresár '``directory``'.");
 
-		for (file in dir.files()) {
-			if (filenamePicker.shouldPick(file.name)) {
-				log.printToLog("Spracúvam súbor '``file.name``':");
-				
-				OpenSongSong openSongSong = readOpenSongSongFromXml(file);
-				value newFilename = processOpenSongSong(openSongSong);
-				writeOpenSongSongToXml(openSongSong, file);
-				renameFile(file, newFilename);
-			}
+		for (file in filenamePicker.files()) {
+			log.printToLog("Spracúvam súbor '``file.name``':");
+			
+			OpenSongSong openSongSong = readOpenSongSongFromXml(file);
+			value newFilename = processOpenSongSong(openSongSong);
+			writeOpenSongSongToXml(openSongSong, file);
+			renameFile(file, newFilename);
 		}
 	}
 	
@@ -255,18 +253,10 @@ shared class OpenSongCleanerLog() {
 }
 
 
-shared class FilenamePicker() {
-//TODO: iba testuje priponu
-//TODO: vo forme wrappera Directory
-//TODO: prerobit fixturu, robi skutocne subory
-
+shared class FilenamePicker(Directory dir) {
 	
-	shared Boolean shouldPick(String filename) {
-		variable Boolean output = true;
-		for (char in {'.','/','\\'} ) {
-			output = output && !filename.contains(char);
-		}
-		return output;
+	shared {File*} files() {
+		return dir.files().filter((File file) => !file.name.contains('.'));
 	}
 }
 
