@@ -18,8 +18,7 @@ import ceylon.file {
 	parsePath,
 	Directory,
 	Nil,
-	File,
-	Path
+	File
 }
 
 import java.util {

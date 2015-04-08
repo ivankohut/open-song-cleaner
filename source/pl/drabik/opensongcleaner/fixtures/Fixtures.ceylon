@@ -50,7 +50,6 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
 
 	shared String sprava() {
-		//TODO: prerobit fixturu, robi skutocne subory
 		String[] argumentyList = ceylonList(argumenty);
 
 		value log = OpenSongCleanerLog();
@@ -64,33 +63,41 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 shared class VyberSuborovNaSpracovanie() {
 	
 	shared variable String nazovSuboru = "";
-	
-	shared Boolean vybranyNaSpracovanie() {
-		value filenamePickerTest = FilenamePickerTest();
+	value filenamePickerTest = FilenamePickerTest();
 		
-		variable String fileName = nazovSuboru;
-		variable Directory dir = filenamePickerTest.returnTestDir();
+	class FilenameAndDirSetter(shared variable Directory dir, shared variable String filename){
+		//if filename is in form subdir/file then dir and filename are updated
 		
-		//check if path contains subdir
-		value filenameSplit = fileName.split(
+		value filenameSplit = filename.split(
 			(char) => {'/'}.contains(char)
 		);
-		//if path contains subdir
 		if (filenameSplit.size>1) {
 			value filenameSplitSeq = filenameSplit.sequence();
-			value subdirString = filenameSplitSeq[0];
-			assert(is String subdirString);
-			value subdir = filenamePickerTest.createSubdirectory(dir, subdirString);
-			value filenameParsed = filenameSplitSeq[1];
-			//TODO: refactor
-			assert(is String filenameParsed);
-			fileName = filenameParsed;
-			filenamePickerTest.createFile(subdir,fileName);
-		} else {
-			filenamePickerTest.createFile(dir,fileName);
-		}
-		value filenamePicker = FilenamePicker(dir);
-		return filenamePickerTest.checkThatFilenameIsPicked(filenamePicker,fileName);
+			
+			assert(is String subdirString = filenameSplitSeq[0]);
+			dir = filenamePickerTest.createSubdirectory(dir, subdirString);
+			
+			assert(is String filenameParsed = filenameSplitSeq[1]);
+			filename = filenameParsed;
+		}		
+	}
+	
+	shared Boolean vybranyNaSpracovanie() {
+		
+		variable Directory testDir = filenamePickerTest.returnTestDir();
+		value filenameAndDirSetter = FilenameAndDirSetter(testDir, nazovSuboru);
+		
+		value filename = filenameAndDirSetter.filename;
+		value realDir = filenameAndDirSetter.dir;
+		
+		value file = filenamePickerTest.createFile(realDir,filename);
+
+		value filenamePicker = FilenamePicker(testDir);
+		value filenamePicked = filenamePickerTest.checkThatFilenameIsPicked(filenamePicker,filename);
+		file.delete();
+		if (!realDir==testDir) {realDir.delete();}
+
+		return filenamePicked;
 	}
 }
 

@@ -15,9 +15,6 @@ import ceylon.file {
 	createFileIfNil,
 	Resource
 }
-import fitnesse.responders.files {
-	CreateDirectoryResponder
-}
 
 class SongFilenameProcessorTest() {
 	test 
@@ -369,9 +366,9 @@ shared class FilenamePickerTest() {
 	test
 	shared void filenameWithExtensionTxtIsNotPicked() {
 
-		value fileName = "song.txt";
+		value fileName = "songf.txt";
 		value dir = returnTestDir();
-		createFile(dir,fileName);
+		value file = createFile(dir,fileName);
 		value filenamePicker = FilenamePicker(dir);
 		
 		//exercise
@@ -380,7 +377,8 @@ shared class FilenamePickerTest() {
 		//verify
 		assertFalse(filenamePicked);
 		
-		//TODO: aftermath -- delete file
+		//cleanup
+		file.delete();
 	}
 
 	test
@@ -388,7 +386,7 @@ shared class FilenamePickerTest() {
 		
 		value fileName = "song.xml";
 		value dir = returnTestDir();
-		createFile(dir,fileName);
+		value file = createFile(dir,fileName);
 		value filenamePicker = FilenamePicker(dir);
 		
 		//exercise
@@ -396,6 +394,9 @@ shared class FilenamePickerTest() {
 		
 		//verify
 		assertFalse(filenamePicked);
+
+		//cleanup
+		file.delete();
 	}
 
 	test
@@ -404,15 +405,18 @@ shared class FilenamePickerTest() {
 		value fileName = "songInSubdir";
 		value dir = returnTestDir();
 		value subdir = createSubdirectory(dir, "subdir");
-		createFile(subdir,fileName);
+		value file = createFile(subdir,fileName);
 		value filenamePicker = FilenamePicker(dir);
-		//TODO: maybe transfer the logic from FIXTURES
 		
 		//exercise
 		value filenamePicked = checkThatFilenameIsPicked(filenamePicker,fileName);
 		
 		//verify
 		assertFalse(filenamePicked);
+		
+		//cleanup
+		file.delete();
+		subdir.delete();
 	}
 
 	test
@@ -420,7 +424,7 @@ shared class FilenamePickerTest() {
 		
 		value fileName = "song";
 		value dir = returnTestDir();
-		createFile(dir,fileName);
+		value file = createFile(dir,fileName);
 		value filenamePicker = FilenamePicker(dir);
 		
 		//exercise
@@ -428,5 +432,8 @@ shared class FilenamePickerTest() {
 		
 		//verify
 		assertTrue(filenamePicked);
+
+		//cleanup
+		file.delete();
 	}
 }
