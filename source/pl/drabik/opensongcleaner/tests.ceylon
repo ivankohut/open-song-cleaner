@@ -245,67 +245,59 @@ class OpenSongCleanerTest() {
 	test
 	shared void openSongCleanerRunExecutedWithNoArgumentsReturnsErrorMessage(){
 		
-		value log = OpenSongCleanerLog();
-		value sut = OpenSongCleaner([],log);
-	
-		//exercise
-		sut.run();
+		try {
+			value log = OpenSongCleanerLog();
+			value sut = OpenSongCleaner([],log);
 
-		//verify
-		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]");
+			//exercise
+			sut.run();
+		} catch (Exception e) {
+			//verify
+			assertEquals(e.message,"Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.");
+		}
 	}
 
 	test
 	shared void openSongCleanerRunExecutedWithTwoArgumentsReturnsErrorMessage(){
 		
-		value log = OpenSongCleanerLog();
-		value sut = OpenSongCleaner([],log);
-		
-		//exercise
-		sut.run();
-
-		//verify
-		assertEquals(sut.lastLogMessage(),"chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]");
+		try {
+			value log = OpenSongCleanerLog();
+			value sut = OpenSongCleaner(["one","two"],log);
+			
+			//exercise
+			sut.run();
+		} catch (Exception e) {
+			//verify
+			assertEquals(e.message,"Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.");
+		}
 	}
 
 	test
 	shared void openSongCleanerRunExecutedWithArgumentNonExistingDirectoryReturnsErrorMessage(){
 		
-		value log = OpenSongCleanerLog();
-		value sut = OpenSongCleaner([],log);
-		
-		//exercise
-		sut.run();
-
-		//verify
-		assertEquals(sut.lastLogMessage(),"chyba[Adresár 'neexistujuci/adresar' neexistuje.]");
+		try {
+			value log = OpenSongCleanerLog();
+			value sut = OpenSongCleaner(["neexistujuci/adresar"],log);
+			
+			//exercise
+			sut.run();
+		} catch (Exception e) {
+			//verify
+			assertEquals(e.message,"Adresár 'neexistujuci/adresar' neexistuje.");
+		}
 	}
 
 	test
 	shared void openSongCleanerRunExecutedWithArgumentExistingDirectoryReturnsPositiveMessage(){
 		
 		value log = OpenSongCleanerLog();
-		value sut = OpenSongCleaner([],log);
+		value sut = OpenSongCleaner(["/Users/peter/Downloads/piesne"],log);
 		
 		//exercise
 		sut.run();
 
 		//verify
-		assertEquals(sut.lastLogMessage(),"Spracúvam adresár '/Users/peter/Downloads/piesne'.");
-	}
-	
-	test
-	shared void todo() {
-		//exercise
-		//TODO: test1 -- write xml, read and unmarshal
-		//TODO: test2 -- ...
-		//shared void peter() {
-		//	value openSongCleaner = OpenSongCleaner();
-		//	openSongCleaner.run(["/Users/peter/Downloads/piesne"]);
-		//}
-
-		//verify
-		assertTrue(true);
+		assertEquals(sut.log.lastMessage(),"Spracúvam adresár '/Users/peter/Downloads/piesne'.");
 	}
 }
 
@@ -314,7 +306,6 @@ class OpenSongCleanerLogTest(){
 
 	test
 	shared void todo() {
-		
 		
 		//exercise
 		
@@ -435,5 +426,17 @@ shared class FilenamePickerTest() {
 
 		//cleanup
 		file.delete();
+	}
+}
+
+shared class FileSystemProcessorTest() {
+	
+	test
+	shared void todo() {
+		//exercise
+		//TODO: test1 -- write xml, read xml
+		
+		//verify
+		assertTrue(true);
 	}
 }

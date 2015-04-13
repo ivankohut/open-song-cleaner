@@ -52,11 +52,13 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared String sprava() {
 		String[] argumentyList = ceylonList(argumenty);
 
-		value log = OpenSongCleanerLog();
-		value openSongCleaner = OpenSongCleaner(argumentyList,log);	
-
-		openSongCleaner.run();
-		return openSongCleaner.lastLogMessage();
+		try {
+			value log = OpenSongCleanerLog();
+			value openSongCleaner = OpenSongCleaner(argumentyList,log);	
+			return openSongCleaner.log.lastMessage();
+		} catch (Exception e) {
+			return "chyba[``e.message``]";
+		}
 	}
 }
 

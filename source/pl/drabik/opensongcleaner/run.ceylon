@@ -130,51 +130,24 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 }
 
 
-shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
+shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 	
-	void raiseError(String message) {
-		//throw Exception(message);
-		log.printToLog("chyba[``message``]");
-	}
-
-	function getDirectory(String[] args) {
+	value fsp = FileSystemProcessor(log);
+	
+	Directory processArgs(String[] args) {
 		if (args.size == 1) {
 			value directoryString = args[0];
 			assert (exists directoryString);
-			value path = parsePath(directoryString);
-			if (is Directory dir = path.resource) {
-				return dir;
-			} else {
-				raiseError("Adresár '``directoryString``' neexistuje.");
-				assert(false);
-			}
+			return fsp.getDirectory(directoryString);
 		} else {
-			raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
+			log.raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
 			assert(false);
 		}
 	}
 	
-	value directory = getDirectory(args);
+	value directory = processArgs(args);
 		
-	shared String lastLogMessage() {
-		return log.lastMessage();
-	}
-		
-	shared OpenSongSong readOpenSongSongFromXml(File file) {
-		JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		JFile jFile  = JFile(file.path.string);
-		try {
-			Object openSongSong = jaxbUnmarshaller.unmarshal(jFile);
-			assert(is OpenSongSong openSongSong);
-			return openSongSong;
-		} catch (Exception e) {
-			raiseError("Súbor nemá štruktúru OpenSong piesne.");
-			throw e;
-		}
-	}
-		
-	shared String processOpenSongSong(OpenSongSong openSongSong) {
+	String processOpenSongSong(OpenSongSong openSongSong) {
 		value presentationComputer = OpenSongPresentationComputer();
 		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
 		openSongSongProcessor.computeAndReplacePresentation(openSongSong);
@@ -183,46 +156,29 @@ shared class OpenSongCleaner(String[] args, OpenSongCleanerLog log) {
 		return songFilenameProcessor.createSongFilename(openSongSong.title,openSongSong.hymnNumber.intValue());
 	}
 		
-	shared void writeOpenSongSongToXml(OpenSongSong openSongSong, File file) {
-		JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty(Marshaller.\iJAXB_FORMATTED_OUTPUT, JBoolean.\iTRUE);
-		JFile jFile  = JFile(file.path.string);
-		jaxbMarshaller.marshal(openSongSong,jFile); 
-	}
-	
-	shared void renameFile(File file, String newFilename) {
-		if (newFilename != file.name) {
-			value newPath = file.path.siblingPath(newFilename); 
-			//dir.path.childPath(newFilename);
-			if (is Nil loc = newPath.resource) {
-				file.move(loc);
-				log.printToLog("Súbor '``file.name``' premenovaný na '``newFilename``'.");
-			} else {
-				raiseError("target file already exists");
-			}
-		}
+	void processOpenSongFile(File file) {
+		log.printToLog("Spracúvam súbor '``file.name``':");
+
+		value serializer = OpenSongSongSerializer(log);
+		OpenSongSong openSongSong = serializer.readFromXml(file);
+		value newFilename = processOpenSongSong(openSongSong);
+		serializer.writeToXml(openSongSong, file);
+
+		fsp.renameFile(file, newFilename);
 	}
 	
 	void runOnEachFileInDirectory(Directory dir) {
-			
 		value filenamePicker = FilenamePicker(dir);
 		log.printToLog("Spracúvam adresár '``directory``'.");
 
 		for (file in filenamePicker.files()) {
-			log.printToLog("Spracúvam súbor '``file.name``':");
-			
-			OpenSongSong openSongSong = readOpenSongSongFromXml(file);
-			value newFilename = processOpenSongSong(openSongSong);
-			writeOpenSongSongToXml(openSongSong, file);
-			renameFile(file, newFilename);
+			processOpenSongFile(file);
 		}
 	}
 	
 	shared void run() {
 		runOnEachFileInDirectory(directory);
 	}
-	
 }
 
 "The runnable method of the module."
@@ -240,6 +196,11 @@ shared class OpenSongCleanerLog() {
 	shared void printToLog(String message) {
 		print(message);
 		log.add(message);
+	}
+	
+	shared void raiseError(String message) {
+		printToLog("chyba[``message``]");
+		throw Exception(message);
 	}
 	
 	shared String lastMessage() {
@@ -260,4 +221,50 @@ shared class FilenamePicker(Directory dir) {
 }
 
 
-//TODO: new class OpenSongSongSerializer
+shared class OpenSongSongSerializer(OpenSongCleanerLog log) {
+	
+	JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
+	
+	shared OpenSongSong readFromXml(File file) {
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		JFile jFile  = JFile(file.path.string);
+		try {
+			Object openSongSong = jaxbUnmarshaller.unmarshal(jFile);
+			assert(is OpenSongSong openSongSong);
+			return openSongSong;
+		} catch (Exception e) {
+			log.raiseError("Súbor nemá štruktúru OpenSong piesne.");
+			assert(false);
+		}
+	}
+
+	shared void writeToXml(OpenSongSong openSongSong, File file) {
+		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+		jaxbMarshaller.setProperty(Marshaller.\iJAXB_FORMATTED_OUTPUT, JBoolean.\iTRUE);
+		JFile jFile  = JFile(file.path.string);
+		jaxbMarshaller.marshal(openSongSong,jFile); 
+	}
+}
+
+shared class FileSystemProcessor(OpenSongCleanerLog log){
+	shared void renameFile(File file, String newFilename) {
+		if (newFilename != file.name) {
+			value newPath = file.path.siblingPath(newFilename); 
+			if (is Nil loc = newPath.resource) {
+				file.move(loc);
+				log.printToLog("Súbor '``file.name``' premenovaný na '``newFilename``'.");
+			} else {
+				log.raiseError("target file already exists");
+			}
+		}
+	}
+	shared Directory getDirectory(String directoryString) {
+		value path = parsePath(directoryString);
+		if (is Directory dir = path.resource) {
+			return dir;
+		} else {
+			log.raiseError("Adresár '``directoryString``' neexistuje.");
+			assert(false);
+		}
+	}
+}
