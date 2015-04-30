@@ -1,6 +1,9 @@
 import ceylon.collection {
 	ArrayList
 }
+import ceylon.interop.java {
+	CeylonIterable
+}
 
 import java.lang {
 	JString=String
@@ -19,13 +22,11 @@ import pl.drabik.opensongcleaner {
 	OpenSongCleaner,
 	OpenSongCleanerLog,
 	FilenamePicker,
-	oscFileUtils
+	oscFileUtils,
+	TestDir
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
-}
-import ceylon.interop.java {
-	CeylonIterable
 }
 
 
@@ -51,14 +52,14 @@ shared class VyberSuborovNaSpracovanie() {
 	shared variable String nazovSuboru = "";
 	
 	shared Boolean vybranyNaSpracovanie() {
-		value testDir = oscFileUtils.createNewDir("fixtureTestDir");
-		value file = oscFileUtils.createFileInDir(testDir, nazovSuboru);
+		value testDir = TestDir("fixtureTestDir");
+		value file = testDir.createFile(nazovSuboru);
 		// exercise
-		value pickedFiles = FilenamePicker(testDir);
+		value pickedFiles = FilenamePicker(testDir.directory);
 		value filenamePicked = oscFileUtils.containsFile(pickedFiles, file);
 		// cleanup
-		oscFileUtils.deleteRecursively(testDir);
-
+		testDir.deleteRecursively();
+		
 		return filenamePicked;
 	}
 }

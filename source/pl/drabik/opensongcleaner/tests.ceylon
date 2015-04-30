@@ -315,6 +315,29 @@ class OpenSongCleanerLogTest(){
 	}	
 }
 
+shared class TestDir(String dirName) {
+	
+	value resource = parsePath(dirName).resource;
+	"Test directory already exists!"
+	assert (is Nil resource);
+	shared Directory directory = resource.createDirectory();
+	
+	shared File createFile(String relativePathWithFileName) {
+		value file = directory.path.childPath(relativePathWithFileName).resource;
+		switch (file) 
+		case (is Nil) {
+			return file.createFile(true);
+		} 
+		else {
+			throw Exception();
+		}
+	}
+	
+	shared void deleteRecursively() {
+		oscFileUtils.deleteRecursively(directory);
+	}
+}
+
 
 shared object oscFileUtils {
 	
@@ -334,39 +357,17 @@ shared object oscFileUtils {
 		}
 	}
 	
-	shared File createFileInDir(Directory dir, String relativePathWithFileName) {
-		value file = dir.path.childPath(relativePathWithFileName).resource;
-		switch (file) 
-		case (is Nil) {
-			return file.createFile(true);
-		} 
-		else {
-			throw Exception();
-		}
-	}
-	
-	shared Directory createNewDir(String dirName) {
-		value result = parsePath(dirName).resource;
-		"Test directory already exists!"
-		assert (is Nil result);
-		return result.createDirectory();
-	}
-	
 	shared Boolean containsFile({File*} files, File expectedFile) => 
 		files.any((file) => file.path.absolutePath == expectedFile.path.absolutePath);
 }
 
 shared class FilenamePickerTest() {
 
-	variable value testDirectory = oscFileUtils.createNewDir("FileNamePickerTestDir");
+	value testDir = TestDir("FileNamePickerTestDir");
 
-	File createFileInTestDir(String relativePathWithFileName) {
-		return oscFileUtils.createFileInDir(testDirectory, relativePathWithFileName);
-	}
-	
 	afterTest
-	void deleteTestDirRecursively() {
-		oscFileUtils.deleteRecursively(testDirectory);
+	shared void deleteTestDirRecursively() {
+		testDir.deleteRecursively();
 	}
 	
 	void assertFilesContain({File*} files, File expectedFile) {
@@ -376,10 +377,10 @@ shared class FilenamePickerTest() {
 	test
 	shared void filenameWithoutExtensionIsPicked() {
 		
-		value file = createFileInTestDir("song");
+		value file = testDir.createFile("song");
 		
 		//exercise
-		value result = FilenamePicker(testDirectory);
+		value result = FilenamePicker(testDir.directory);
 		
 		//verify
 		assertFilesContain(result, file);
@@ -388,10 +389,10 @@ shared class FilenamePickerTest() {
 	test
 	shared void filenameWithExtensionIsNotPicked() {
 		
-		createFileInTestDir("songf.txt");
+		testDir.createFile("songf.txt");
 		
 		//exercise
-		value result = FilenamePicker(testDirectory);
+		value result = FilenamePicker(testDir.directory);
 		
 		//verify
 		assertTrue(result.empty);
@@ -400,10 +401,10 @@ shared class FilenamePickerTest() {
 	test
 	shared void filenameWithoutExtensionInSubdirectoryIsNotPicked() {
 		
-		createFileInTestDir("subdir/songInSubdir");
+		testDir.createFile("subdir/songInSubdir");
 		
 		//exercise
-		value result = FilenamePicker(testDirectory);
+		value result = FilenamePicker(testDir.directory);
 		
 		//verify
 		assertTrue(result.empty);
