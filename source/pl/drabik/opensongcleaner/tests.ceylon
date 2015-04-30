@@ -1,19 +1,19 @@
-import ceylon.test {
-	test,
-	assertEquals,
-	assertFalse,
-	assertTrue
-}
-import pl.drabik.opensongcleaner.opensong {
-	OpenSongSong
-}
 import ceylon.file {
 	parsePath,
 	Directory,
 	Nil,
 	File,
-	createFileIfNil,
-	Resource
+	ExistingResource
+}
+import ceylon.test {
+	test,
+	assertEquals,
+	assertTrue,
+	afterTest
+}
+
+import pl.drabik.opensongcleaner.opensong {
+	OpenSongSong
 }
 
 class SongFilenameProcessorTest() {
@@ -316,117 +316,99 @@ class OpenSongCleanerLogTest(){
 }
 
 
-shared class FilenamePickerTest() {
+shared object oscFileUtils {
 	
-	shared Directory returnTestDir() {
-		value directoryString = "/Users/peter/Downloads/piesne";
-		value directoryPath = parsePath(directoryString);
-		value dir = directoryPath.resource;
-		assert(is Directory dir);
-		return dir;
-	}
-
-	shared Directory createSubdirectory(Directory dir, String subdirString) {
-		value filePath = dir.path.childPath(subdirString);
-		Resource loc = filePath.resource;
-		assert(is Directory|Nil loc);
-		switch (loc)
-		case (is Directory) { return loc; }
-		case (is Nil) { return loc.createDirectory(); }
-	}
-	
-	shared File createFile(Directory dir, String fileName) {
-		value filePath = dir.path.childPath(fileName);
-		Resource loc = filePath.resource;
-		
-		assert(is File|Nil loc);
-		value myFile = createFileIfNil(loc);
-		return myFile;
-	}
-	
-	shared Boolean checkThatFilenameIsPicked(FilenamePicker sut, String fileName) {
-		variable Boolean fileFound = false;
-		for (file in sut.files()) {
-			if (file.name==fileName) {
-				fileFound = true;
-			}
+	shared void deleteRecursively(ExistingResource res) {
+		switch (res)
+		case (is File) { 
+			res.delete(); 
 		}
-		return fileFound;
+		case (is Directory) {
+			for (child in res.children()) {
+				deleteRecursively(child);
+			}
+			res.delete();
+		}
+		else {
+			throw Exception();
+		}
 	}
 	
-	test
-	shared void filenameWithExtensionTxtIsNotPicked() {
-
-		value fileName = "songf.txt";
-		value dir = returnTestDir();
-		value file = createFile(dir,fileName);
-		value filenamePicker = FilenamePicker(dir);
-		
-		//exercise
-		value filenamePicked = checkThatFilenameIsPicked(filenamePicker,fileName);
-		
-		//verify
-		assertFalse(filenamePicked);
-		
-		//cleanup
-		file.delete();
+	shared File createFileInDir(Directory dir, String relativePathWithFileName) {
+		value file = dir.path.childPath(relativePathWithFileName).resource;
+		switch (file) 
+		case (is Nil) {
+			return file.createFile(true);
+		} 
+		else {
+			throw Exception();
+		}
 	}
-
-	test
-	shared void filenameWithExtensionXmlIsNotPicked() {
-		
-		value fileName = "song.xml";
-		value dir = returnTestDir();
-		value file = createFile(dir,fileName);
-		value filenamePicker = FilenamePicker(dir);
-		
-		//exercise
-		value filenamePicked = checkThatFilenameIsPicked(filenamePicker,fileName);
-		
-		//verify
-		assertFalse(filenamePicked);
-
-		//cleanup
-		file.delete();
+	
+	shared Directory createNewDir(String dirName) {
+		value result = parsePath(dirName).resource;
+		"Test directory already exists!"
+		assert (is Nil result);
+		return result.createDirectory();
 	}
+	
+	shared Boolean containsFile({File*} files, File expectedFile) => 
+		files.any((file) => file.path.absolutePath == expectedFile.path.absolutePath);
+}
 
-	test
-	shared void filenameWithoutExtensionInSubdirectoryIsNotPicked() {
-		
-		value fileName = "songInSubdir";
-		value dir = returnTestDir();
-		value subdir = createSubdirectory(dir, "subdir");
-		value file = createFile(subdir,fileName);
-		value filenamePicker = FilenamePicker(dir);
-		
-		//exercise
-		value filenamePicked = checkThatFilenameIsPicked(filenamePicker,fileName);
-		
-		//verify
-		assertFalse(filenamePicked);
-		
-		//cleanup
-		file.delete();
-		subdir.delete();
+shared class FilenamePickerTest() {
+
+	variable value testDirectory = oscFileUtils.createNewDir("FileNamePickerTestDir");
+
+	File createFileInTestDir(String relativePathWithFileName) {
+		return oscFileUtils.createFileInDir(testDirectory, relativePathWithFileName);
 	}
-
+	
+	afterTest
+	void deleteTestDirRecursively() {
+		oscFileUtils.deleteRecursively(testDirectory);
+	}
+	
+	void assertFilesContain({File*} files, File expectedFile) {
+		assertTrue(oscFileUtils.containsFile(files, expectedFile));
+	}
+	
 	test
 	shared void filenameWithoutExtensionIsPicked() {
 		
-		value fileName = "song";
-		value dir = returnTestDir();
-		value file = createFile(dir,fileName);
-		value filenamePicker = FilenamePicker(dir);
+		value file = createFileInTestDir("song");
 		
 		//exercise
-		value filenamePicked = checkThatFilenameIsPicked(filenamePicker,fileName);
+		value result = FilenamePicker(testDirectory);
 		
 		//verify
-		assertTrue(filenamePicked);
-
-		//cleanup
-		file.delete();
+		assertFilesContain(result, file);
 	}
+
+	test
+	shared void filenameWithExtensionIsNotPicked() {
+		
+		createFileInTestDir("songf.txt");
+		
+		//exercise
+		value result = FilenamePicker(testDirectory);
+		
+		//verify
+		assertTrue(result.empty);
+	}
+	
+	test
+	shared void filenameWithoutExtensionInSubdirectoryIsNotPicked() {
+		
+		createFileInTestDir("subdir/songInSubdir");
+		
+		//exercise
+		value result = FilenamePicker(testDirectory);
+		
+		//verify
+		assertTrue(result.empty);
+	}
+
 }
 
 shared class FileSystemProcessorTest() {

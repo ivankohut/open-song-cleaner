@@ -1,3 +1,15 @@
+import ceylon.collection {
+	ArrayList
+}
+
+import java.lang {
+	JString=String
+}
+import java.util {
+	JList=List,
+	JArrayList=ArrayList
+}
+
 import pl.drabik.opensongcleaner {
 	OpenSongSongProcessor,
 	OpenSongPresentationComputer,
@@ -7,50 +19,22 @@ import pl.drabik.opensongcleaner {
 	OpenSongCleaner,
 	OpenSongCleanerLog,
 	FilenamePicker,
-	FilenamePickerTest
+	oscFileUtils
 }
-
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
-
-import java.util {
-	JList = List,
-	JArrayList = ArrayList,
-	Iterator
-}
-
-import ceylon.collection {
-	ArrayList
-}
-
-import java.lang {
-	JString = String
-}
-import ceylon.file {
-	Directory
+import ceylon.interop.java {
+	CeylonIterable
 }
 
 
 shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	
-	String[] ceylonList(JArrayList<JString> jArrayList) {
-		variable ArrayList<JString> arrayList = ArrayList<JString>();
-		
-		Iterator<JString> iterator = jArrayList.iterator();
-		while (iterator.hasNext()) {
-			arrayList.add(iterator.next());
-		}
-		
-		String[] list = [ for (jString in arrayList) "``jString``"];
-
-		return list;
-	}
-	
-	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
+	shared variable JList<JString> argumenty = JArrayList<JString>();
 
 	shared String sprava() {
-		String[] argumentyList = ceylonList(argumenty);
+		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
 
 		try {
 			value log = OpenSongCleanerLog();
@@ -65,39 +49,15 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 shared class VyberSuborovNaSpracovanie() {
 	
 	shared variable String nazovSuboru = "";
-	value filenamePickerTest = FilenamePickerTest();
-		
-	class FilenameAndDirSetter(shared variable Directory dir, shared variable String filename){
-		//if filename is in form subdir/file then dir and filename are updated
-		
-		value filenameSplit = filename.split(
-			(char) => {'/'}.contains(char)
-		);
-		if (filenameSplit.size>1) {
-			value filenameSplitSeq = filenameSplit.sequence();
-			
-			assert(is String subdirString = filenameSplitSeq[0]);
-			dir = filenamePickerTest.createSubdirectory(dir, subdirString);
-			
-			assert(is String filenameParsed = filenameSplitSeq[1]);
-			filename = filenameParsed;
-		}		
-	}
 	
 	shared Boolean vybranyNaSpracovanie() {
-		
-		variable Directory testDir = filenamePickerTest.returnTestDir();
-		value filenameAndDirSetter = FilenameAndDirSetter(testDir, nazovSuboru);
-		
-		value filename = filenameAndDirSetter.filename;
-		value realDir = filenameAndDirSetter.dir;
-		
-		value file = filenamePickerTest.createFile(realDir,filename);
-
-		value filenamePicker = FilenamePicker(testDir);
-		value filenamePicked = filenamePickerTest.checkThatFilenameIsPicked(filenamePicker,filename);
-		file.delete();
-		if (!realDir==testDir) {realDir.delete();}
+		value testDir = oscFileUtils.createNewDir("fixtureTestDir");
+		value file = oscFileUtils.createFileInDir(testDir, nazovSuboru);
+		// exercise
+		value pickedFiles = FilenamePicker(testDir);
+		value filenamePicked = oscFileUtils.containsFile(pickedFiles, file);
+		// cleanup
+		oscFileUtils.deleteRecursively(testDir);
 
 		return filenamePicked;
 	}
