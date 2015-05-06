@@ -42,15 +42,15 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 			arrayList.add(iterator.next());
 		}
 		
-		String[] list = [ for (jString in arrayList) "``jString``"];
-
-		return list;
+		return [for (jString in arrayList) "``jString``"];
 	}
 	
 	shared variable JArrayList<JString> argumenty = JArrayList<JString>();
 
 	shared String sprava() {
+		//TODO: prva sprava v logu
 		String[] argumentyList = ceylonList(argumenty);
+		//TODO: simplify by using CeylonList (Cmd-shift-T)
 
 		try {
 			value log = OpenSongCleanerLog();
@@ -59,6 +59,7 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 		} catch (Exception e) {
 			return "chyba[``e.message``]";
 		}
+		//TODO: use existingDirectory instead of a particular one
 	}
 }
 
@@ -191,6 +192,7 @@ shared class SpravyVAplikacnomLogu() {
 			jArrayList.add(myObject);
 		}
 		return jArrayList;
+		//TODO: testovacia implementacia logu
 	}
 	
 	shared JList<Object> query() {

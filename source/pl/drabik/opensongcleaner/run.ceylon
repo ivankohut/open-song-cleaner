@@ -134,7 +134,7 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 	
 	value fsp = FileSystemProcessor(log);
 	
-	Directory processArgs(String[] args) {
+	Directory parseArgs(String[] args) {
 		if (args.size == 1) {
 			value directoryString = args[0];
 			assert (exists directoryString);
@@ -145,7 +145,7 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 		}
 	}
 	
-	value directory = processArgs(args);
+	value directory = parseArgs(args);
 		
 	String processOpenSongSong(OpenSongSong openSongSong) {
 		value presentationComputer = OpenSongPresentationComputer();
@@ -190,6 +190,7 @@ shared void run() {
 
 
 shared class OpenSongCleanerLog() {
+	//TODO: make into interface
 
 	variable ArrayList<String> log = ArrayList<String>();
 	
@@ -234,6 +235,7 @@ shared class OpenSongSongSerializer(OpenSongCleanerLog log) {
 			return openSongSong;
 		} catch (Exception e) {
 			log.raiseError("Súbor nemá štruktúru OpenSong piesne.");
+			//TODO: nema koncit flow
 			assert(false);
 		}
 	}
