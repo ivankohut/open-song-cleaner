@@ -171,7 +171,7 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 		value filenamePicker = FilenamePicker(dir);
 		log.printToLog("Spracúvam adresár '``directory``'.");
 
-		for (file in filenamePicker.files()) {
+		for (file in filenamePicker) {
 			processOpenSongFile(file);
 		}
 	}
@@ -192,7 +192,7 @@ shared void run() {
 shared class OpenSongCleanerLog() {
 	//TODO: make into interface
 
-	variable ArrayList<String> log = ArrayList<String>();
+	value log = ArrayList<String>();
 	
 	shared void printToLog(String message) {
 		print(message);
@@ -214,11 +214,12 @@ shared class OpenSongCleanerLog() {
 }
 
 
-shared class FilenamePicker(Directory dir) {
-	
-	shared {File*} files() {
-		return dir.files().filter((File file) => !file.name.contains('.'));
+shared class FilenamePicker(Directory dir) satisfies Iterable<File> {
+	Boolean isExtensionLess(File file) {
+		return !file.name.contains('.');
 	}
+	
+	shared actual Iterator<File> iterator() => dir.files().filter(isExtensionLess).iterator();
 }
 
 
