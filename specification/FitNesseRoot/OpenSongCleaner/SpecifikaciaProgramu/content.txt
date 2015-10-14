@@ -15,7 +15,7 @@ Program má jeden povinný argument - adresár, v ktorom sa nachádzajú piesne 
 |[]                                          |chyba[Nesprávny počet argumentov (0). Očakáva sa jeden argument - názov adresára.]|
 |[adresar, dalsiArgument]                    |chyba[Nesprávny počet argumentov (2). Očakáva sa jeden argument - názov adresára.]|
 |[neexistujuci/adresar]                      |chyba[Adresár 'neexistujuci/adresar' neexistuje.]                                 |
-|[/Users/peter/Development]                  |Spracúvam adresár '/Users/peter/Development'.                                     |
+|[existujuciAdresar]                         |Spracúvam adresár 'existujuciAdresar'.                                            |
 
 !2 Výber súborov na spracovanie
 

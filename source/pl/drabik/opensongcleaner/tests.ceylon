@@ -15,6 +15,59 @@ import ceylon.test {
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
+import java.util {
+	ArrayList
+}
+
+shared class TestLog() satisfies MyLog {
+	
+	value logArrayList = ArrayList<String>();
+	
+	shared actual void log(String logLevel, String message) {
+		logArrayList.add(message);
+	}
+	
+	shared Boolean containsMessage(String message) => logArrayList.contains(message);
+	
+	shared actual String lastMessage() {
+		value logSize = logArrayList.size();
+		if (logSize == 0) {
+			return "Log is empty";
+		} else {
+			return logArrayList.get(logSize-1);
+		}
+	}
+}
+
+class TestLogTest(){
+	
+	test
+	shared void testLogLogsMessage() {
+		
+		value sut = TestLog();
+		value testMessage = "Message"; 
+		
+		//exercise
+		sut.log("INFO", testMessage);
+		
+		//verify
+		assertEquals(sut.lastMessage(), testMessage);
+	}	
+
+	test
+	shared void testLogContainsMessageFindsLoggedMessage() {
+		
+		value sut = TestLog();
+		value testMessage = "Message"; 
+		
+		//exercise
+		sut.log("INFO", testMessage);
+		
+		//verify
+		assertTrue(sut.containsMessage(testMessage));
+	}	
+}
+
 
 class SongFilenameProcessorTest() {
 	test 
@@ -191,7 +244,7 @@ class OpenSongSongProcessorTest() {
 	shared void songWithEmptyPresentationGetsComputedPresentationAndSuccessMessageIsLogged() {
 		value computedPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value log = OpenSongCleanerLog();
+		value log = TestLog();
 		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong{presentation="";};
@@ -204,10 +257,10 @@ class OpenSongSongProcessorTest() {
 	}
 	
 	test 
-	shared void songWithCorrectPresentationStaysTheSameAndEmptyMessageIsLogged(){
+	shared void songWithCorrectPresentationStaysTheSame(){
 		value existingPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(existingPresentation);
-		value log = OpenSongCleanerLog();
+		value log = TestLog();
 		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong{presentation=existingPresentation;};
@@ -217,14 +270,13 @@ class OpenSongSongProcessorTest() {
 		
 		//verify
 		assertEquals(song.presentation,existingPresentation);
-		assertEquals(log.lastMessage(),"");
 	}
 	
 	test 
 	shared void songWithWrongPresentationStaysTheSameAndErrorIsLogged(){
 		value computedPresentation = "V1 C V2 C";
 		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value log = OpenSongCleanerLog();
+		value log = TestLog();
 		value sut = OpenSongSongProcessor(presentationComputer,log);
 
 		value existingPresentation = computedPresentation + " V3";
@@ -235,7 +287,7 @@ class OpenSongSongProcessorTest() {
 		
 		//verify
 		assertEquals(song.presentation,existingPresentation);
-		assertEquals(log.lastMessage(),"Vypočítaná prezentácia nie je v súlade s existujúcou.");
+		assertTrue(log.containsMessage("Vypočítaná prezentácia nie je v súlade s existujúcou."));
 	}
 }
 
@@ -246,7 +298,7 @@ class OpenSongCleanerTest() {
 	shared void openSongCleanerRunExecutedWithNoArgumentsReturnsErrorMessage(){
 		
 		try {
-			value log = OpenSongCleanerLog();
+			value log = TestLog();
 			value sut = OpenSongCleaner([],log);
 
 			//exercise
@@ -261,7 +313,7 @@ class OpenSongCleanerTest() {
 	shared void openSongCleanerRunExecutedWithTwoArgumentsReturnsErrorMessage(){
 		
 		try {
-			value log = OpenSongCleanerLog();
+			value log = TestLog();
 			value sut = OpenSongCleaner(["one","two"],log);
 			
 			//exercise
@@ -276,42 +328,48 @@ class OpenSongCleanerTest() {
 	shared void openSongCleanerRunExecutedWithArgumentNonExistingDirectoryReturnsErrorMessage(){
 		
 		try {
-			value log = OpenSongCleanerLog();
+			value log = TestLog();
 			value sut = OpenSongCleaner(["neexistujuci/adresar"],log);
 			
 			//exercise
 			sut.run();
 		} catch (Exception e) {
 			//verify
-			assertEquals(e.message,"Adresár 'neexistujuci/adresar' neexistuje.");
+			assertEquals(e.message, "Adresár 'neexistujuci/adresar' neexistuje.");
 		}
+
 	}
 
 	test
 	shared void openSongCleanerRunExecutedWithArgumentExistingDirectoryReturnsPositiveMessage(){
 		
-		value log = OpenSongCleanerLog();
+		value log = TestLog();
 		value sut = OpenSongCleaner(["/Users/peter/Downloads/piesne"],log);
 		
 		//exercise
 		sut.run();
 
 		//verify
-		assertEquals(sut.log.lastMessage(),"Spracúvam adresár '/Users/peter/Downloads/piesne'.");
+		value sutLog = sut.log;
+		assert(is TestLog sutLog);
+		assertTrue(sutLog.containsMessage("Spracúvam adresár '/Users/peter/Downloads/piesne'."));
 	}
 }
 
 
-class OpenSongCleanerLogTest(){
+class PrinterLogTest(){
 
 	test
-	shared void todo() {
+	shared void printerLogLogsMessage() {
+		
+		value sut = PrinterLog();
+		value testMessage = "Message"; 
 		
 		//exercise
-		
+		sut.log("INFO", testMessage);
 		
 		//verify
-		assertTrue(true);
+		assertEquals(sut.lastMessage(), testMessage);
 	}	
 }
 
@@ -418,8 +476,9 @@ shared class FileSystemProcessorTest() {
 	shared void todo() {
 		//exercise
 		//TODO: test1 -- write xml, read xml
+		//currently errors in Ceylon Test (JAXBException)
 		
 		//verify
-		assertTrue(true);
+		assertTrue(false);
 	}
 }

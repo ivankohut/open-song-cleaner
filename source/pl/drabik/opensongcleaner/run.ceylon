@@ -18,7 +18,8 @@ import ceylon.file {
 	parsePath,
 	Directory,
 	Nil,
-	File
+	File,
+	ExistingResource
 }
 
 import java.util {
@@ -28,7 +29,8 @@ import java.util {
 import javax.xml.bind {
 	JAXBContext,
 	Marshaller,
-	Unmarshaller
+	Unmarshaller,
+	UnmarshalException
 }
 
 import java.lang {
@@ -112,7 +114,7 @@ shared class OpenSongPresentationComputer() satisfies PresentationComputer {
 }
 
 
-shared class OpenSongSongProcessor(PresentationComputer presentationComputer, OpenSongCleanerLog log) {
+shared class OpenSongSongProcessor(PresentationComputer presentationComputer, MyLog log) {
 	
 	shared void computeAndReplacePresentation(OpenSongSong song) {
 		value oldPresentation = song.presentation; 
@@ -120,17 +122,15 @@ shared class OpenSongSongProcessor(PresentationComputer presentationComputer, Op
 		
 		if (oldPresentation=="") {
 			song.presentation = newPresentation;
-			log.printToLog("Prezentácia nastavená.");
+			log.log("INFO", "Prezentácia nastavená.");
 		} else if (oldPresentation!=newPresentation){
-			log.printToLog("Vypočítaná prezentácia nie je v súlade s existujúcou.");
-		} else {
-			log.printToLog("");//TODO: satisfies specification, but not nice
+			log.log("WARNING", "Vypočítaná prezentácia nie je v súlade s existujúcou.");
 		}
 	}
 }
 
 
-shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
+shared class OpenSongCleaner(String[] args, shared MyLog log) {
 	
 	value fsp = FileSystemProcessor(log);
 	
@@ -138,10 +138,16 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 		if (args.size == 1) {
 			value directoryString = args[0];
 			assert (exists directoryString);
-			return fsp.getDirectory(directoryString);
+			try {
+				return fsp.getDirectory(directoryString);
+			} catch(FileSystemProcessorException e) {
+				value errorMessage = log.lastMessage();
+				throw Exception(errorMessage);
+			}
 		} else {
-			log.raiseError("Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
-			assert(false);
+			log.log("SEVERE","Nesprávny počet argumentov (``args.size.string``). Očakáva sa jeden argument - názov adresára.");
+			value errorMessage = log.lastMessage();
+			throw Exception(errorMessage);
 		}
 	}
 	
@@ -157,19 +163,22 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 	}
 		
 	void processOpenSongFile(File file) {
-		log.printToLog("Spracúvam súbor '``file.name``':");
+		log.log("INFO", "Spracúvam súbor '``file.name``':");
 
 		value serializer = OpenSongSongSerializer(log);
-		OpenSongSong openSongSong = serializer.readFromXml(file);
-		value newFilename = processOpenSongSong(openSongSong);
-		serializer.writeToXml(openSongSong, file);
-
-		fsp.renameFile(file, newFilename);
+		try {
+			OpenSongSong openSongSong = serializer.readFromXml(file);
+			serializer.writeToXml(openSongSong, file);
+			value newFilename = processOpenSongSong(openSongSong);
+			fsp.renameFile(file, newFilename);
+		} catch (OpenSongSongSerializerException e) {
+			// do nothing
+		}
 	}
 	
 	void runOnEachFileInDirectory(Directory dir) {
 		value filenamePicker = FilenamePicker(dir);
-		log.printToLog("Spracúvam adresár '``directory``'.");
+		log.log("INFO", "Spracúvam adresár '``directory``'.");
 
 		for (file in filenamePicker) {
 			processOpenSongFile(file);
@@ -183,47 +192,51 @@ shared class OpenSongCleaner(String[] args, shared OpenSongCleanerLog log) {
 
 "The runnable method of the module."
 shared void run() {
-	value log = OpenSongCleanerLog();
+	value log = PrinterLog();
 	value openSongCleaner = OpenSongCleaner(process.arguments, log);
 	openSongCleaner.run();
 }
 
 
-shared class OpenSongCleanerLog() {
-	//TODO: make into interface
+shared interface MyLog {
+	shared formal void log(String logLevel, String message);//TODO logLevel should be enumerated
+	shared formal String lastMessage();
+}
 
-	value log = ArrayList<String>();
+
+shared class PrinterLog() satisfies MyLog {
+
+	value logArrayList = ArrayList<String>();
 	
-	shared void printToLog(String message) {
-		print(message);
-		log.add(message);
+	shared actual void log(String logLevel, String message) {
+		value logText = logLevel + ": " + message;
+		print(logText);
+		logArrayList.add(message);
 	}
 	
-	shared void raiseError(String message) {
-		printToLog("chyba[``message``]");
-		throw Exception(message);
-	}
-	
-	shared String lastMessage() {
-		if (log.size() == 0) {
-			return "";
+	shared actual String lastMessage() {
+		value logSize = logArrayList.size();
+		if (logSize == 0) {
+			return "Log is empty";
 		} else {
-			return log.get(log.size()-1);
+			return logArrayList.get(logSize-1);
 		}
 	}
 }
 
 
 shared class FilenamePicker(Directory dir) satisfies Iterable<File> {
-	Boolean isExtensionLess(File file) {
-		return !file.name.contains('.');
-	}
+	
+	Boolean isExtensionLess(File file) => !file.name.contains('.');
 	
 	shared actual Iterator<File> iterator() => dir.files().filter(isExtensionLess).iterator();
 }
 
 
-shared class OpenSongSongSerializer(OpenSongCleanerLog log) {
+class OpenSongSongSerializerException() extends Exception() {
+}
+
+shared class OpenSongSongSerializer(MyLog log) {
 	
 	JAXBContext jaxbContext = JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong");
 	
@@ -234,10 +247,9 @@ shared class OpenSongSongSerializer(OpenSongCleanerLog log) {
 			Object openSongSong = jaxbUnmarshaller.unmarshal(jFile);
 			assert(is OpenSongSong openSongSong);
 			return openSongSong;
-		} catch (Exception e) {
-			log.raiseError("Súbor nemá štruktúru OpenSong piesne.");
-			//TODO: nema koncit flow
-			assert(false);
+		} catch (UnmarshalException e) {
+			log.log("WARNING", "Súbor nemá štruktúru OpenSong piesne.");
+			throw OpenSongSongSerializerException();
 		}
 	}
 
@@ -249,25 +261,53 @@ shared class OpenSongSongSerializer(OpenSongCleanerLog log) {
 	}
 }
 
-shared class FileSystemProcessor(OpenSongCleanerLog log){
+
+class FileSystemProcessorException() extends Exception() {
+}
+
+
+class FileSystemProcessor(MyLog log){
+	
 	shared void renameFile(File file, String newFilename) {
 		if (newFilename != file.name) {
 			value newPath = file.path.siblingPath(newFilename); 
 			if (is Nil loc = newPath.resource) {
 				file.move(loc);
-				log.printToLog("Súbor '``file.name``' premenovaný na '``newFilename``'.");
+				log.log("INFO", "Súbor '``file.name``' premenovaný na '``newFilename``'.");
 			} else {
-				log.raiseError("target file already exists");
+				log.log("WARNING", "Súbor '``file.name``' nemôže byť premenovaný na '``newFilename``'. Cieľový súbor už existuje.");
+				throw FileSystemProcessorException();
 			}
 		}
 	}
+	
 	shared Directory getDirectory(String directoryString) {
 		value path = parsePath(directoryString);
 		if (is Directory dir = path.resource) {
 			return dir;
 		} else {
-			log.raiseError("Adresár '``directoryString``' neexistuje.");
-			assert(false);
+			log.log("WARNING", "Adresár '``directoryString``' neexistuje.");
+			throw FileSystemProcessorException();
 		}
 	}
+	
+	shared void deleteRecursively(ExistingResource res) {
+		switch (res)
+		case (is File) { 
+			res.delete(); 
+		}
+		case (is Directory) {
+			for (child in res.children()) {
+				deleteRecursively(child);
+			}
+			res.delete();
+		}
+		else {
+			log.log("WARNING", "'``res``' nie je adresár.");
+			throw FileSystemProcessorException();
+		}
+	}
+	
+	shared Boolean containsFile({File*} files, File expectedFile) => 
+			files.any((file) => file.path.absolutePath == expectedFile.path.absolutePath);
 }

@@ -20,7 +20,7 @@ import pl.drabik.opensongcleaner {
 	createOpenSongSong,
 	SongFilenameProcessor,
 	OpenSongCleaner,
-	OpenSongCleanerLog,
+	PrinterLog,
 	FilenamePicker,
 	oscFileUtils,
 	TestDir
@@ -37,10 +37,9 @@ shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 	shared String sprava() {
 		//TODO: prva sprava v logu
 		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
-		//TODO: simplify by using CeylonList (Cmd-shift-T)
 
 		try {
-			value log = OpenSongCleanerLog();
+			value log = PrinterLog();
 			value openSongCleaner = OpenSongCleaner(argumentyList,log);	
 			return openSongCleaner.log.lastMessage();
 		} catch (Exception e) {
@@ -76,7 +75,7 @@ shared class VypocetPrezentacie() {
 		song.lyrics =  textPiesne;
 		song.presentation = "";
 		
-		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),OpenSongCleanerLog());
+		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),PrinterLog());
 		songProcessor.computeAndReplacePresentation(song);
 		
 		return song.presentation;
@@ -89,7 +88,7 @@ shared class NaplneniePrezentacie() {
 	shared variable String? staraHodnota = "";
 	shared variable String vypocitanaHodnota = "";
 	
-	variable OpenSongCleanerLog log = OpenSongCleanerLog();
+	variable PrinterLog log = PrinterLog();
 
 	
 	shared String novaHodnota() {
