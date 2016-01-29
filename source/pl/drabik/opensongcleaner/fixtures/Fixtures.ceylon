@@ -18,12 +18,13 @@ import pl.drabik.opensongcleaner {
 	OpenSongPresentationComputer,
 	ConstantPresentationComputer,
 	createOpenSongSong,
-	SongFilenameProcessor,
+	SongFileName,
 	OpenSongCleaner,
 	PrinterLog,
-	FilenamePicker,
+	SongFiles,
 	oscFileUtils,
-	TestDir
+	TestDir,
+	Named
 }
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
@@ -31,73 +32,71 @@ import pl.drabik.opensongcleaner.opensong {
 
 
 shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
-	
+
 	shared variable JList<JString> argumenty = JArrayList<JString>();
 
-	shared String sprava() {
-		//TODO: prva sprava v logu
-		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
-
-		try {
-			value log = PrinterLog();
-			value openSongCleaner = OpenSongCleaner(argumentyList,log);	
-			return openSongCleaner.log.lastMessage();
-		} catch (Exception e) {
-			return "chyba[``e.message``]";
-		}
-		//TODO: use existingDirectory instead of a particular one
-	}
+//	shared String sprava() {
+//		//TODO: prva sprava v logu
+//		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
+//
+//		try {
+//			value log = PrinterLog();
+//			value openSongCleaner = OpenSongCleaner(argumentyList,log);
+//			return openSongCleaner.log.lastMessage();
+//		} catch (Exception e) {
+//			return "chyba[``e.message``]";
+//		}
+//		//TODO: use existingDirectory instead of a particular one
+//	}
 }
 
 shared class VyberSuborovNaSpracovanie() {
-	
+
 	shared variable String nazovSuboru = "";
-	
+
+	class SimpleNamed(shared actual String name) satisfies Named {}
+
 	shared Boolean vybranyNaSpracovanie() {
-		value testDir = TestDir("fixtureTestDir");
-		value file = testDir.createFile(nazovSuboru);
+		value file = SimpleNamed(nazovSuboru);
 		// exercise
-		value pickedFiles = FilenamePicker(testDir.directory);
-		value filenamePicked = oscFileUtils.containsFile(pickedFiles, file);
-		// cleanup
-		testDir.deleteRecursively();
-		
-		return filenamePicked;
+		value pickedFiles = SongFiles({file});
+
+		return pickedFiles.contains(file);
 	}
 }
 
 shared class VypocetPrezentacie() {
-	
+
 	shared variable String textPiesne = "";
-	
+
 	shared String prezentacia() {
 		value song = OpenSongSong();
 		song.lyrics =  textPiesne;
 		song.presentation = "";
-		
+
 		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),PrinterLog());
 		songProcessor.computeAndReplacePresentation(song);
-		
+
 		return song.presentation;
 	}
 }
 
 shared class NaplneniePrezentacie() {
 	registerConverters();
-	
+
 	shared variable String? staraHodnota = "";
 	shared variable String vypocitanaHodnota = "";
-	
+
 	variable PrinterLog log = PrinterLog();
 
-	
+
 	shared String novaHodnota() {
-		
+
 		value presentationComputer = ConstantPresentationComputer(vypocitanaHodnota);
 		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
 
 		value song = createOpenSongSong(staraHodnota else "");
-		
+
 		try {
 			openSongSongProcessor.computeAndReplacePresentation(song);
 			return song.presentation;
@@ -105,35 +104,34 @@ shared class NaplneniePrezentacie() {
 			return "chyba[``e.message``]";
 		}
 	}
-	
+
 	shared String spravaVLogu(){
 		return log.lastMessage();
 	}
 }
 
 shared class NazovSuboruPiesne() {
-	
+
 	variable Integer cislo = 0;
 	variable String nazov = "";
-	
+
 	shared void piesenSCislomANazvom(Integer cislo, String nazov) {
 		this.cislo = cislo;
 		this.nazov = nazov;
 	}
-	
-	shared String nazovSuboru() {
-		value songFilenameProcessor = SongFilenameProcessor();
-		return songFilenameProcessor.createSongFilename(nazov,cislo);
-	}
+
+	//shared String nazovSuboru() {
+	//	return String(SongFileName(nazov, cislo));
+	//}
 }
 
 shared class VysledkySpracovaniaSuborov() {
-	
+
 	shared variable String nazovSuboru = "";
 	shared variable String typVysledku = "";
 	shared variable String spravaSpracovania = "";
 	shared variable Boolean premenovany = false;
-	
+
 	shared void compute(){
 		kontext.riadky.add(Riadok(nazovSuboru,typVysledku,spravaSpracovania,premenovany));
 	}
@@ -143,11 +141,11 @@ shared class Riadok(shared String nazovSuboru, shared String typVysledku, shared
 }
 
 object kontext {
-	shared ArrayList<Riadok> riadky = ArrayList<Riadok>(); 
+	shared ArrayList<Riadok> riadky = ArrayList<Riadok>();
 }
 
 shared class SpravyVAplikacnomLogu() {
-	
+
 	JList<Object> list(Object* objects) {
 		value jArrayList = JArrayList<Object>();
 		for (myObject in objects) {
@@ -156,10 +154,10 @@ shared class SpravyVAplikacnomLogu() {
 		return jArrayList;
 		//TODO: testovacia implementacia logu
 	}
-	
+
 	shared JList<Object> query() {
-		
-		return 
+
+		return
 		list(
 			list(
 				list("zaznam v logu","Spracúvam súbor 'piesen':")

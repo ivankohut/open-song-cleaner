@@ -9,6 +9,7 @@ module pl.drabik.opensongcleaner "1.0.0" {
 	import ceylon.test "1.2.0";
 	shared import ceylon.file "1.2.0";
 	import ceylon.interop.java "1.2.0";
-	import "org.apache.commons:commons-lang3" "3.3.2";
+	//import "org.apache.commons:commons-lang3" "3.3.2";
+	import "commons-io:commons-io" "2.4";
 	import "org.fitnesse:fitnesse" "20150814";
 }
