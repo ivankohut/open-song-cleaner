@@ -105,7 +105,7 @@ class UpdatablePresentableSong({Character*} _existingPresentation, {Character*} 
 	shared actual Boolean? originalPresentationCorrect() {
 		value existingPresentation = String(_existingPresentation);
 		value newPresentation = String(_newPresentation);
-		
+
 		if (existingPresentation == newPresentation) {
 			return true;
 		} else if (existingPresentation.empty) {
@@ -122,7 +122,7 @@ shared interface Presentable {
 }
 
 class PresentableSongFile(TextFile file) satisfies Presentable {
-	
+
 	shared actual void setPresentation(String presentation) {
 		value content = file.content();
 		value matcher = Pattern.compile("(\\<presentation\\>(.*)\\<\\/presentation\\>)").matcher(javaString(content));
@@ -144,9 +144,9 @@ shared interface TextFile satisfies Named {
 class UTF8TextFile(String filePath) satisfies TextFile {
 	value fileEncoding = "UTF-8";
 	value file = JFile(filePath);
-	
+
 	shared actual String name => file.name;
-	
+
 	shared actual String content() {
 		return FileUtils.readFileToString(file, fileEncoding);
 	}
@@ -292,7 +292,7 @@ class RenamedFile(MyFile file, {Character*} newName) {
 					r.move(loc);
 					return true;
 				} else {
-					throw Exception("'``file.name`` nie je súbor");
+					throw Exception("'``file.name``' nie je súbor.");
 				}
 			} else {
 				throw Exception("Súbor '``file.name``' nemôže byť premenovaný na '``newFilenameString``'. Cieľový súbor už existuje.");
