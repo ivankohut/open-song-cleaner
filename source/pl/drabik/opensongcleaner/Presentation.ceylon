@@ -1,5 +1,5 @@
-class ExtractedPartCodes(String songText) satisfies {String*} {
-	shared actual Iterator<String> iterator() => songText
+class ExtractedPartCodes(SongLyrics song) satisfies {String*} {
+	shared actual Iterator<String> iterator() => song.lyrics
 			.split((char) => {'[',']'}.contains(char))
 			.indexed
 			.filter((i) => !i.key.even)
@@ -8,17 +8,17 @@ class ExtractedPartCodes(String songText) satisfies {String*} {
 }
 
 interface SongWithVerses {
-	shared formal Boolean containsChorus();
-	shared formal {String*} versesCodes();
+	shared formal Boolean containsChorus;
+	shared formal {String*} versesCodes;
 }
 
 class PartCodesSong({String*} partCodes) satisfies SongWithVerses {
 
-	shared actual Boolean containsChorus() {
+	shared actual Boolean containsChorus {
 		return partCodes.contains("C");
 	}
 
-	shared actual {String*} versesCodes() {
+	shared actual {String*} versesCodes {
 		return partCodes.filter((element) => element != "C");
 	}
 }
@@ -27,9 +27,9 @@ class PartCodesSong({String*} partCodes) satisfies SongWithVerses {
 class Presentation(SongWithVerses song) satisfies {Character*} {
 
 	shared actual String string {
-		value containsChorus = song.containsChorus();
+		value containsChorus = song.containsChorus;
 		return " ".join(
-			song.versesCodes()
+			song.versesCodes
 					.flatMap((verseCode) => if (containsChorus) then { verseCode, "C" } else { verseCode })
 		);
 	}

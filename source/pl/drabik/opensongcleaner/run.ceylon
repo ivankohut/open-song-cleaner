@@ -7,30 +7,31 @@ import ceylon.file {
 import ceylon.interop.java {
 	javaString
 }
+
 import java.io {
 	JFile=File
-}
-import java.util {
-	ArrayList
 }
 import java.util.regex {
 	Pattern
 }
+
 import javax.xml.bind {
 	JAXBContext,
 	Unmarshaller,
 	UnmarshalException
 }
+
 import org.apache.commons.io {
 	FileUtils
 }
+
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
 }
 
-
 shared interface MyFile satisfies Named {
 	shared formal String path;
+	shared actual default String name => parsePath(path).normalizedPath.elementPaths.last?.string else "";
 }
 
 shared class FileMyFile(File file) satisfies MyFile {
@@ -51,29 +52,51 @@ class OneArgument(String[] args) satisfies {Character*} {
 	}
 }
 
-class DirectoryOfFiles({Character*} directoryString) satisfies Iterable<MyFile> {
+class DirectoryOfFiles(MyFile directory) satisfies Iterable<MyFile> {
 
-	Directory directory() {
-		if (is Directory dir = parsePath(String(directoryString)).resource) {
+	Directory fsDirectory() {
+		if (is Directory dir = parsePath(directory.path).resource) {
 			return dir;
 		} else {
-			throw Exception("Adresár '``directoryString``' neexistuje.");
+			throw Exception("Adresár '``directory.path``' neexistuje.");
 		}
 	}
 
-	shared actual Iterator<MyFile> iterator() => directory().files()
+	shared actual Iterator<MyFile> iterator() => fsDirectory().files()
 		.sort((File x, File y) => x.name.compare(y.name))
 		.map((file) => FileMyFile(file)).iterator();
 }
 
 
-shared interface CleanableOpenSongSong {
+shared interface Cleanable {
 	shared formal void clean();
 }
 
-shared interface FileSerializer {
-	shared formal OpenSongSong readFromXml(MyFile file);
-	shared formal void writeToXml(OpenSongSong openSongSong, MyFile file);
+shared interface PresentationListener {
+	shared formal void onSame();
+	shared formal void onNew();
+	shared formal void onDifferent();
+}
+
+shared class PresentationCorrectingSong(
+	SongPresentation _existingPresentation,
+	{Character*} _newPresentation, 
+	Presentable song,
+	PresentationListener listener
+) satisfies Cleanable {
+	shared actual void clean() {
+		value existingPresentation = _existingPresentation.presentation;
+		value newPresentation = String(_newPresentation);
+		
+		if (existingPresentation == newPresentation) {
+			listener.onSame();
+		} else if (existingPresentation.empty) {
+			song.setPresentation(newPresentation);
+			listener.onNew();
+		} else {
+			listener.onDifferent();
+		}
+	}
 }
 
 shared interface SongLyrics {
@@ -89,32 +112,6 @@ class SongFile(OpenSongSongProvider openSongSong) satisfies SongLyrics & SongIde
 	shared actual String lyrics => openSongSong.get().lyrics;
 	shared actual String title => openSongSong.get().title;
 	shared actual String presentation => openSongSong.get().presentation;
-}
-
-shared interface UpdatedSong satisfies Named {
-	shared formal Boolean wasFileRenamed();
-	shared formal Boolean? originalPresentationCorrect();
-}
-
-shared interface UpdateblePresentation {
-	shared formal Boolean? originalPresentationCorrect();
-}
-
-class UpdatablePresentableSong({Character*} _existingPresentation, {Character*} _newPresentation, Presentable song) satisfies UpdateblePresentation {
-
-	shared actual Boolean? originalPresentationCorrect() {
-		value existingPresentation = String(_existingPresentation);
-		value newPresentation = String(_newPresentation);
-
-		if (existingPresentation == newPresentation) {
-			return true;
-		} else if (existingPresentation.empty) {
-			song.setPresentation(newPresentation);
-			return null;
-		} else {
-			return false;
-		}
-	}
 }
 
 shared interface Presentable {
@@ -141,9 +138,9 @@ shared interface TextFile satisfies Named {
 	shared formal void replaceContent(String newContent);
 }
 
-class UTF8TextFile(String filePath) satisfies TextFile {
+class UTF8TextFile(MyFile myFile) satisfies TextFile {
 	value fileEncoding = "UTF-8";
-	value file = JFile(filePath);
+	value file = JFile(myFile.path);
 
 	shared actual String name => file.name;
 
@@ -156,92 +153,93 @@ class UTF8TextFile(String filePath) satisfies TextFile {
 	}
 }
 
-
-class FileCleanableOpenSongSongs({MyFile*} songFiles, JAXBContext jaxbContext) satisfies Iterable<UpdatedSong>{
-	shared actual Iterator<UpdatedSong> iterator() =>
-		songFiles.map((file) {
-			value songFile = SongFile(CachedOpenSongSongProvider(XmlFileOpenSongSongProvider(jaxbContext, file)));
-			value song = UpdatablePresentableSong(
-				songFile.presentation,
-				Presentation(PartCodesSong(ExtractedPartCodes(songFile.lyrics))),
-				PresentableSongFile(UTF8TextFile(file.path))
-			);
-			value renamedSongFile = RenamedFile(file, SongFileName(songFile));
-			return object satisfies UpdatedSong {
-				shared actual Boolean? originalPresentationCorrect() => song.originalPresentationCorrect();
-				shared actual String name => file.name;
-				shared actual Boolean wasFileRenamed() => renamedSongFile.wasRenamed();
-			};
-		}).iterator();
+shared class LoggingPresentationListener(Named subject, Logger logger) satisfies PresentationListener & RenamingListener {
+	shared actual void onDifferent() {
+		logger.log(warning, "``subject.name`` - Prezentácia sa nezhoduje!");
+	}
+	
+	shared actual void onNew() {
+		logger.log(info, "``subject.name`` - Prezentácia bola nastavená.");
+	}
+	
+	shared actual void onSame() {}
+	
+	shared actual void onRename(String newName) {
+		logger.log(info, "``subject.name`` - súbor piesne premenovaný na '``newName``'");
+	}
 }
 
+shared interface CleanableFileFactory {
+	shared formal {Cleanable*} create(MyFile file);
+}
 
-shared class OpenSongCleaner(Iterable<UpdatedSong> songs, MyLog logger) {
-	shared void clean() {
-		songs.each(void (UpdatedSong song) {
-			if (song.wasFileRenamed()) {
-				logger.log("INFO", "``song.name`` - subor piesne premenovany");
-			}
-			switch (song.originalPresentationCorrect())
-				case (false) {
-					 logger.log("WARN", "``song.name`` - Prezentacia sa nezhoduje");
-				}
-				case (true) {
-				}
-				case (null) {
-					logger.log("INFO", "``song.name`` - Prezentacia bola nastavena.");
-				}
-		});
+shared interface CleaningOptions {
+	shared formal Boolean presentation;
+	shared formal Boolean fileName;
+}
+
+class OpenSongFileBasedCleanableSongFactory(JAXBContext jaxbContext, Logger logger, CleaningOptions settings) satisfies CleanableFileFactory {
+	shared actual {Cleanable*} create(MyFile file) {
+		
+		value songFile = SongFile(CachedOpenSongSongProvider(XmlFileOpenSongSongProvider(jaxbContext, file)));
+		value listener = LoggingPresentationListener(file, logger);
+		
+		return expand([
+			if (settings.presentation) then {PresentationCorrectingSong(
+				songFile,
+				Presentation(PartCodesSong(ExtractedPartCodes(songFile))),
+				PresentableSongFile(UTF8TextFile(file)),
+				listener
+			)} else {},
+			 
+			if (settings.fileName) then {FileNameCorrecting(
+				file, 
+				SongFileName(songFile), 
+				listener
+			)} else {}
+		]);
+	}
+}
+
+class FileCleanableOpenSongSongs({MyFile*} songFiles, CleanableFileFactory factory) satisfies Cleanable {
+	shared actual void clean() {
+		songFiles.flatMap(factory.create).each((song) => song.clean());
 	}
 }
 
 "The runnable method of the module."
 shared void run() {
-	value log = PrinterLog();
-	OpenSongCleaner(
-		FileCleanableOpenSongSongs(
-			SongFiles(
-				DirectoryOfFiles(OneArgument(process.arguments))
-			),
-			JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong")
+	value options = OpenSongCleanerOptions();
+	FileCleanableOpenSongSongs(
+		SongFiles(
+			DirectoryOfFiles(options)
 		),
-		log
+		OpenSongFileBasedCleanableSongFactory(
+			JAXBContext.newInstance("pl.drabik.opensongcleaner.opensong"),
+			CliLogger(),
+			options
+		)
 	).clean();
 }
 
-
-shared interface MyLog {
-	shared formal void log(String logLevel, String message);//TODO logLevel should be enumerated
-	shared formal String lastMessage();
-}
-
-
-shared class PrinterLog() satisfies MyLog {
-
-	value logArrayList = ArrayList<String>();
-
-	shared actual void log(String logLevel, String message) {
-		value logText = logLevel + ": " + message;
-		print(logText);
-		logArrayList.add(message);
+class OpenSongCleanerOptions() satisfies CleaningOptions & MyFile {
+	
+	Nothing noDirectorySpecified() {
+		throw Exception("No directory specified.");
 	}
-
-	shared actual String lastMessage() {
-		value logSize = logArrayList.size();
-		if (logSize == 0) {
-			return "Log is empty";
-		} else {
-			return logArrayList.get(logSize-1);
-		}
-	}
+	
+	suppressWarnings("expressionTypeNothing")
+	shared actual String path => process.namedArgumentValue("d") else noDirectorySpecified();
+	
+	shared actual Boolean fileName => process.namedArgumentPresent("r");
+	shared actual Boolean presentation => process.namedArgumentPresent("p");
+	
 }
-
 
 
 shared interface Named {
 	shared formal String name;
 }
-
 
 shared class SongFiles<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
 
@@ -281,8 +279,12 @@ class XmlFileOpenSongSongProvider(JAXBContext jaxbContext, MyFile file) satisfie
 	}
 }
 
-class RenamedFile(MyFile file, {Character*} newName) {
-	shared Boolean wasRenamed() {
+shared interface RenamingListener {
+	shared formal void onRename(String newName);
+}
+
+class FileNameCorrecting(MyFile file, {Character*} newName, RenamingListener listener) satisfies Cleanable {
+	shared actual void clean() {
 		value newFilenameString = String(newName);
 		if (newFilenameString != file.name) {
 			value filePath = parsePath(file.path);
@@ -290,15 +292,13 @@ class RenamedFile(MyFile file, {Character*} newName) {
 			if (is Nil loc = newPath.resource) {
 				if (is File r = filePath.resource) {
 					r.move(loc);
-					return true;
+					listener.onRename(newFilenameString);
 				} else {
 					throw Exception("'``file.name``' nie je súbor.");
 				}
 			} else {
 				throw Exception("Súbor '``file.name``' nemôže byť premenovaný na '``newFilenameString``'. Cieľový súbor už existuje.");
 			}
-		} else {
-			return false;
 		}
 	}
 }
