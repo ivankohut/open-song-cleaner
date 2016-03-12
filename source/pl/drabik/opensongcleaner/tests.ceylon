@@ -8,28 +8,24 @@ import ceylon.file {
 import ceylon.test {
 	test,
 	assertEquals,
-	assertTrue,
-	afterTest
+	assertTrue
 }
 
-import pl.drabik.opensongcleaner.opensong {
-	OpenSongSong
-}
 import java.util {
 	ArrayList
 }
 
-shared class TestLog() satisfies MyLog {
+shared class TestLog() satisfies Logger {
 
 	value logArrayList = ArrayList<String>();
 
-	shared actual void log(String logLevel, String message) {
+	shared actual void log(LogLevel logLevel, String message) {
 		logArrayList.add(message);
 	}
 
 	shared Boolean containsMessage(String message) => logArrayList.contains(message);
 
-	shared actual String lastMessage() {
+	shared String lastMessage() {
 		value logSize = logArrayList.size();
 		if (logSize == 0) {
 			return "Log is empty";
@@ -39,7 +35,7 @@ shared class TestLog() satisfies MyLog {
 	}
 }
 
-class TestLogTest(){
+class TestLogTest() {
 
 	test
 	shared void testLogLogsMessage() {
@@ -48,7 +44,7 @@ class TestLogTest(){
 		value testMessage = "Message";
 
 		//exercise
-		sut.log("INFO", testMessage);
+		sut.log(info, testMessage);
 
 		//verify
 		assertEquals(sut.lastMessage(), testMessage);
@@ -61,7 +57,7 @@ class TestLogTest(){
 		value testMessage = "Message";
 
 		//exercise
-		sut.log("INFO", testMessage);
+		sut.log(info, testMessage);
 
 		//verify
 		assertTrue(sut.containsMessage(testMessage));
@@ -69,34 +65,36 @@ class TestLogTest(){
 }
 
 
-//class SongFileNameTest() {
-//	test
-//	shared void shouldRemoveAccentsFromString() {
-//		//exercise
-//		value sut = SongFileName("ľščťžýáíéúäôň", 0);
-//		//verify
-//		assertTrue(String(sut).contains("lsctzyaieuaon"));
-//	}
-//
-//	test
-//	shared void hymnNumberFormattedToLengthThreeByAddingLeftPaddingByZeros() {
-//		//exercise
-//		value sut = SongFileName("", 37);
-//		//verify
-//		assertTrue(String(sut).contains("037"));
-//	}
-//
-//	test
-//	shared void songFilenameConsistsOfFormattedHymnNumberAndSongNameWithoutAccents() {
-//		//exercise
-//		value result = SongFileName("Vďaka, česť, Otče náš", 2);
-//		//verify
-//		assertEquals(String(result), "002 - Vdaka, cest, Otce nas");
-//	}
-//}
+class SongFileNameTest() {
+	test
+	shared void shouldRemoveAccentsFromString() {
+		//exercise
+		value sut = SongFileName(SimpleSongIdentifiers("ľščťžýáíéúäôň", 0));
+		//verify
+		assertTrue(String(sut).contains("lsctzyaieuaon"));
+	}
+
+	test
+	shared void hymnNumberFormattedToLengthThreeByAddingLeftPaddingByZeros() {
+		//exercise
+		value sut = SongFileName(SimpleSongIdentifiers("", 37));
+		//verify
+		assertTrue(String(sut).contains("037"));
+	}
+
+	test
+	shared void songFilenameConsistsOfFormattedHymnNumberAndSongNameWithoutAccents() {
+		//exercise
+		value result = SongFileName(SimpleSongIdentifiers("Vďaka, česť, Otče náš", 2));
+		//verify
+		assertEquals(String(result), "002 - Vdaka, cest, Otce nas");
+	}
+	
+	class SimpleSongIdentifiers(shared actual String title, shared actual Integer hymnNumber) satisfies SongIdentifiers {}
+}
 
 
-class PartCodesTest() {
+class ExtractedPartCodesTest() {
 	test
 	shared void twoVerseTextWithChorusContainsTwoVerseCodeAndChorus() {
 		value songText="""
@@ -110,50 +108,21 @@ class PartCodesTest() {
 		                  Druhý riadok
 		                  """;
 
-		value sut = PartCodes(songText);
-
-		//exercise
-		value resultCodes = sut.extractVersesCodes();
-		value resultChorus = sut.containsChorus();
-
-		//verify
-		assertEquals(" ".join(resultCodes),"V1 V2");
-		assert(resultChorus);
+		assertEquals(ExtractedPartCodes(SimpleSongLyrics(songText)), {"V1", "C", "V2"});
 	}
-
-	test
-	shared void twoVerseTextWithoutChorusContainsTwoVerseCodeAndNoChorus() {
-		value songText="""
-		                  [V1]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  [V2]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  """;
-
-		value sut = PartCodes(songText);
-
-		//exercise
-		value resultCodes = sut.extractVersesCodes();
-		value resultChorus = sut.containsChorus();
-
-		//verify
-
-		assertEquals(" ".join(resultCodes),"V1 V2");
-		assert(!resultChorus);
-	}
+	
+	class SimpleSongLyrics(shared actual String lyrics) satisfies SongLyrics {}
 }
 
-
-class ConstantPartCodes({String*} versesCodes, Boolean doesContainChorus) extends PartCodes("") {
-
-	actual shared {String*} extractVersesCodes() {
-		return versesCodes;
+class PartCodesSongTest() {
+	test shared void containsChorusIffAtLeastOnePartCodesIsC() {
+		assert (PartCodesSong({"V1", "C", "V2"}).containsChorus);
+		assert (!PartCodesSong({"V1", "V2"}).containsChorus);
 	}
-
-	actual shared Boolean containsChorus() {
-		return doesContainChorus;
+	
+	test shared void versesCodesAreAllPartCodesExceptChorus() {
+		assertEquals(PartCodesSong({"V1", "C", "V2"}).versesCodes, {"V1", "V2"});
+		assertEquals(PartCodesSong({"V1", "V2"}).versesCodes, {"V1", "V2"});
 	}
 }
 
@@ -161,7 +130,7 @@ class PresentationTest() {
 	test
 	shared void presentationConsistOfSpaceDelimitedVersesCodesWhenNoChorus() {
 
-		value partCodes = ConstantPartCodes({"V1","V2","V3"},false);
+		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, false);
 		value sut = Presentation(partCodes);
 
 		//exercise
@@ -174,7 +143,7 @@ class PresentationTest() {
 	test
 	shared void presentationConsistOfSpaceDelimitedVersesCodesInterleavedWithCWhenChorus() {
 
-		value partCodes = ConstantPartCodes({"V1","V2","V3"},true);
+		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, true);
 		value sut = Presentation(partCodes);
 
 		//exercise
@@ -183,100 +152,69 @@ class PresentationTest() {
 		//verify
 		assertEquals(result,"V1 C V2 C V3 C");
 	}
+	
+	class SimpleSongWithVerses(shared actual {String*} versesCodes, shared actual Boolean containsChorus) satisfies SongWithVerses {}
 }
 
-
-class OpenSongPresentationComputerTest() {
-
-	test
-	shared void computesPresentationFromLyrics(){
-		value sut = OpenSongPresentationComputer();
-
-		value lyrics="""
-		                  [V1]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  [C]
-		                  Refrén
-		                  [V2]
-		                  Prvý riadok
-		                  Druhý riadok
-		                """;
-
-		//exercise
-		value computedPresentation = sut.compute(lyrics);
-
-		//verify
-		assertEquals(computedPresentation,"V1 C V2 C");
-	}
-}
-
-
-shared class ConstantPresentationComputer(String presentation) satisfies PresentationComputer {
-	shared actual String compute(String lyrics) {
-		return presentation;
-	}
-}
-
-shared OpenSongSong createOpenSongSong(String presentation) {
-	value song = OpenSongSong();
-	song.lyrics = "";
-	song.presentation = presentation;
-	return song;
-}
-
-class OpenSongSongProcessorTest() {
-
-	test
-	shared void songWithEmptyPresentationGetsComputedPresentationAndSuccessMessageIsLogged() {
-		value computedPresentation = "V1 C V2 C";
-		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value log = TestLog();
-		value sut = OpenSongSongProcessor(presentationComputer,log);
-
-		value song = createOpenSongSong{presentation="";};
-
-		//exercise
-		sut.computeAndReplacePresentation(song);
-
-		//verify
-		assertEquals(song.presentation,computedPresentation);
-	}
-
-	test
-	shared void songWithCorrectPresentationStaysTheSame(){
-		value existingPresentation = "V1 C V2 C";
-		value presentationComputer = ConstantPresentationComputer(existingPresentation);
-		value log = TestLog();
-		value sut = OpenSongSongProcessor(presentationComputer,log);
-
-		value song = createOpenSongSong{presentation=existingPresentation;};
-
-		//exercise
-		sut.computeAndReplacePresentation(song);
-
-		//verify
-		assertEquals(song.presentation,existingPresentation);
-	}
-
-	test
-	shared void songWithWrongPresentationStaysTheSameAndErrorIsLogged(){
-		value computedPresentation = "V1 C V2 C";
-		value presentationComputer = ConstantPresentationComputer(computedPresentation);
-		value log = TestLog();
-		value sut = OpenSongSongProcessor(presentationComputer,log);
-
-		value existingPresentation = computedPresentation + " V3";
-		value song = createOpenSongSong{presentation=existingPresentation;};
-
-		//exercise
-		sut.computeAndReplacePresentation(song);
-
-		//verify
-		assertEquals(song.presentation,existingPresentation);
-		assertTrue(log.containsMessage("Vypočítaná prezentácia nie je v súlade s existujúcou."));
-	}
-}
+//shared OpenSongSong createOpenSongSong(String presentation) {
+//	value song = OpenSongSong();
+//	song.lyrics = "";
+//	song.presentation = presentation;
+//	return song;
+//}
+//
+//class OpenSongSongProcessorTest() {
+//
+//	test
+//	shared void songWithEmptyPresentationGetsComputedPresentationAndSuccessMessageIsLogged() {
+//		value computedPresentation = "V1 C V2 C";
+//		value presentationComputer = ConstantPresentationComputer(computedPresentation);
+//		value log = TestLog();
+//		value sut = OpenSongSongProcessor(presentationComputer,log);
+//
+//		value song = createOpenSongSong{presentation="";};
+//
+//		//exercise
+//		sut.computeAndReplacePresentation(song);
+//
+//		//verify
+//		assertEquals(song.presentation,computedPresentation);
+//	}
+//
+//	test
+//	shared void songWithCorrectPresentationStaysTheSame(){
+//		value existingPresentation = "V1 C V2 C";
+//		value presentationComputer = ConstantPresentationComputer(existingPresentation);
+//		value log = TestLog();
+//		value sut = OpenSongSongProcessor(presentationComputer,log);
+//
+//		value song = createOpenSongSong{presentation=existingPresentation;};
+//
+//		//exercise
+//		sut.computeAndReplacePresentation(song);
+//
+//		//verify
+//		assertEquals(song.presentation,existingPresentation);
+//	}
+//
+//	test
+//	shared void songWithWrongPresentationStaysTheSameAndErrorIsLogged(){
+//		value computedPresentation = "V1 C V2 C";
+//		value presentationComputer = ConstantPresentationComputer(computedPresentation);
+//		value log = TestLog();
+//		value sut = OpenSongSongProcessor(presentationComputer,log);
+//
+//		value existingPresentation = computedPresentation + " V3";
+//		value song = createOpenSongSong{presentation=existingPresentation;};
+//
+//		//exercise
+//		sut.computeAndReplacePresentation(song);
+//
+//		//verify
+//		assertEquals(song.presentation,existingPresentation);
+//		assertTrue(log.containsMessage("Vypočítaná prezentácia nie je v súlade s existujúcou."));
+//	}
+//}
 
 
 class OpenSongCleanerTest() {
@@ -344,21 +282,21 @@ class OpenSongCleanerTest() {
 }
 
 
-class PrinterLogTest(){
-
-	test
-	shared void printerLogLogsMessage() {
-
-		value sut = PrinterLog();
-		value testMessage = "Message";
-
-		//exercise
-		sut.log("INFO", testMessage);
-
-		//verify
-		assertEquals(sut.lastMessage(), testMessage);
-	}
-}
+//class PrinterLogTest(){
+//
+//	test
+//	shared void printerLogLogsMessage() {
+//
+//		value sut = CliLogger();
+//		value testMessage = "Message";
+//
+//		//exercise
+//		sut.log("INFO", testMessage);
+//
+//		//verify
+//		assertEquals(sut.lastMessage(), testMessage);
+//	}
+//}
 
 shared class TestDir(String dirName) {
 

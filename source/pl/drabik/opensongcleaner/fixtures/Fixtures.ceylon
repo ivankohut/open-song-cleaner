@@ -1,9 +1,6 @@
 import ceylon.collection {
 	ArrayList
 }
-import ceylon.interop.java {
-	CeylonIterable
-}
 
 import java.lang {
 	JString=String
@@ -14,20 +11,8 @@ import java.util {
 }
 
 import pl.drabik.opensongcleaner {
-	OpenSongSongProcessor,
-	OpenSongPresentationComputer,
-	ConstantPresentationComputer,
-	createOpenSongSong,
-	SongFileName,
-	OpenSongCleaner,
-	PrinterLog,
 	SongFiles,
-	oscFileUtils,
-	TestDir,
 	Named
-}
-import pl.drabik.opensongcleaner.opensong {
-	OpenSongSong
 }
 
 
@@ -65,50 +50,54 @@ shared class VyberSuborovNaSpracovanie() {
 	}
 }
 
-shared class VypocetPrezentacie() {
+//shared class VypocetPrezentacie() {
+//
+//	shared variable String textPiesne = "";
+//
+//	shared String prezentacia() {
+//		Presentation(PartCodesSong(ExtractedPartCodes(object satisfies SongLyrics {
+//			
+//		})))
+//		
+//		value song = OpenSongSong();
+//		song.lyrics =  textPiesne;
+//		song.presentation = "";
+//
+//		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),CliLogger());
+//		songProcessor.computeAndReplacePresentation(song);
+//
+//		return song.presentation;
+//	}
+//}
 
-	shared variable String textPiesne = "";
-
-	shared String prezentacia() {
-		value song = OpenSongSong();
-		song.lyrics =  textPiesne;
-		song.presentation = "";
-
-		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),PrinterLog());
-		songProcessor.computeAndReplacePresentation(song);
-
-		return song.presentation;
-	}
-}
-
-shared class NaplneniePrezentacie() {
-	registerConverters();
-
-	shared variable String? staraHodnota = "";
-	shared variable String vypocitanaHodnota = "";
-
-	variable PrinterLog log = PrinterLog();
-
-
-	shared String novaHodnota() {
-
-		value presentationComputer = ConstantPresentationComputer(vypocitanaHodnota);
-		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
-
-		value song = createOpenSongSong(staraHodnota else "");
-
-		try {
-			openSongSongProcessor.computeAndReplacePresentation(song);
-			return song.presentation;
-		} catch (Exception e) {
-			return "chyba[``e.message``]";
-		}
-	}
-
-	shared String spravaVLogu(){
-		return log.lastMessage();
-	}
-}
+//shared class NaplneniePrezentacie() {
+//	registerConverters();
+//
+//	shared variable String? staraHodnota = "";
+//	shared variable String vypocitanaHodnota = "";
+//
+//	variable CliLogger log = CliLogger();
+//
+//
+//	shared String novaHodnota() {
+//
+//		value presentationComputer = ConstantPresentationComputer(vypocitanaHodnota);
+//		value openSongSongProcessor = OpenSongSongProcessor(presentationComputer,log);
+//
+//		value song = createOpenSongSong(staraHodnota else "");
+//
+//		try {
+//			openSongSongProcessor.computeAndReplacePresentation(song);
+//			return song.presentation;
+//		} catch (Exception e) {
+//			return "chyba[``e.message``]";
+//		}
+//	}
+//
+//	shared String spravaVLogu(){
+//		return log.lastMessage();
+//	}
+//}
 
 shared class NazovSuboruPiesne() {
 
