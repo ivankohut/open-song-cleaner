@@ -1,6 +1,10 @@
 
 [defaults]
 encoding=UTF-8
+offline=false
+flatclasspath=false
+autoexportmavendependencies=false
+fullyexportmavendependencies=false
 
 [formattool]
 profile=default
@@ -8,3 +12,8 @@ profile=default
 [repositories]
 remote=http://modules.ceylon-lang.org/modules
 remote=aether
+
+[compiler]
+source=source
+source=tests
+resource=resource

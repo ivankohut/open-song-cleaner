@@ -14,3 +14,19 @@ shared class CliLogger() satisfies Logger {
 		print("``logLevel.code``: ``message``");
 	}
 }
+
+shared class LoggingPresentationListener(Named subject, Logger logger) satisfies PresentationListener & RenamingListener {
+	shared actual void onDifferent() {
+		logger.log(warning, "``subject.name`` - Prezentácia sa nezhoduje!");
+	}
+
+	shared actual void onNew() {
+		logger.log(info, "``subject.name`` - Prezentácia bola nastavená.");
+	}
+
+	shared actual void onSame() {}
+
+	shared actual void onRename(String newName) {
+		logger.log(info, "``subject.name`` - súbor piesne premenovaný na '``newName``'.");
+	}
+}

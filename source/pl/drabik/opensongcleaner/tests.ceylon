@@ -11,150 +11,55 @@ import ceylon.test {
 	assertTrue
 }
 
-import java.util {
-	ArrayList
-}
+//shared class TestLog() satisfies Logger {
+//
+//	value logArrayList = ArrayList<String>();
+//
+//	shared actual void log(LogLevel logLevel, String message) {
+//		logArrayList.add(message);
+//	}
+//
+//	shared Boolean containsMessage(String message) => logArrayList.contains(message);
+//
+//	shared String lastMessage() {
+//		value logSize = logArrayList.size();
+//		if (logSize == 0) {
+//			return "Log is empty";
+//		} else {
+//			return logArrayList.get(logSize-1);
+//		}
+//	}
+//}
+//
+//class TestLogTest() {
+//
+//	test
+//	shared void testLogLogsMessage() {
+//
+//		value sut = TestLog();
+//		value testMessage = "Message";
+//
+//		//exercise
+//		sut.log(info, testMessage);
+//
+//		//verify
+//		assertEquals(sut.lastMessage(), testMessage);
+//	}
+//
+//	test
+//	shared void testLogContainsMessageFindsLoggedMessage() {
+//
+//		value sut = TestLog();
+//		value testMessage = "Message";
+//
+//		//exercise
+//		sut.log(info, testMessage);
+//
+//		//verify
+//		assertTrue(sut.containsMessage(testMessage));
+//	}
+//}
 
-shared class TestLog() satisfies Logger {
-
-	value logArrayList = ArrayList<String>();
-
-	shared actual void log(LogLevel logLevel, String message) {
-		logArrayList.add(message);
-	}
-
-	shared Boolean containsMessage(String message) => logArrayList.contains(message);
-
-	shared String lastMessage() {
-		value logSize = logArrayList.size();
-		if (logSize == 0) {
-			return "Log is empty";
-		} else {
-			return logArrayList.get(logSize-1);
-		}
-	}
-}
-
-class TestLogTest() {
-
-	test
-	shared void testLogLogsMessage() {
-
-		value sut = TestLog();
-		value testMessage = "Message";
-
-		//exercise
-		sut.log(info, testMessage);
-
-		//verify
-		assertEquals(sut.lastMessage(), testMessage);
-	}
-
-	test
-	shared void testLogContainsMessageFindsLoggedMessage() {
-
-		value sut = TestLog();
-		value testMessage = "Message";
-
-		//exercise
-		sut.log(info, testMessage);
-
-		//verify
-		assertTrue(sut.containsMessage(testMessage));
-	}
-}
-
-
-class SongFileNameTest() {
-	test
-	shared void shouldRemoveAccentsFromString() {
-		//exercise
-		value sut = SongFileName(SimpleSongIdentifiers("ľščťžýáíéúäôň", 0));
-		//verify
-		assertTrue(String(sut).contains("lsctzyaieuaon"));
-	}
-
-	test
-	shared void hymnNumberFormattedToLengthThreeByAddingLeftPaddingByZeros() {
-		//exercise
-		value sut = SongFileName(SimpleSongIdentifiers("", 37));
-		//verify
-		assertTrue(String(sut).contains("037"));
-	}
-
-	test
-	shared void songFilenameConsistsOfFormattedHymnNumberAndSongNameWithoutAccents() {
-		//exercise
-		value result = SongFileName(SimpleSongIdentifiers("Vďaka, česť, Otče náš", 2));
-		//verify
-		assertEquals(String(result), "002 - Vdaka, cest, Otce nas");
-	}
-	
-	class SimpleSongIdentifiers(shared actual String title, shared actual Integer hymnNumber) satisfies SongIdentifiers {}
-}
-
-
-class ExtractedPartCodesTest() {
-	test
-	shared void twoVerseTextWithChorusContainsTwoVerseCodeAndChorus() {
-		value songText="""
-		                  [V1]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  [C]
-		                  Refrén
-		                  [V2]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  """;
-
-		assertEquals(ExtractedPartCodes(SimpleSongLyrics(songText)), {"V1", "C", "V2"});
-	}
-	
-	class SimpleSongLyrics(shared actual String lyrics) satisfies SongLyrics {}
-}
-
-class PartCodesSongTest() {
-	test shared void containsChorusIffAtLeastOnePartCodesIsC() {
-		assert (PartCodesSong({"V1", "C", "V2"}).containsChorus);
-		assert (!PartCodesSong({"V1", "V2"}).containsChorus);
-	}
-	
-	test shared void versesCodesAreAllPartCodesExceptChorus() {
-		assertEquals(PartCodesSong({"V1", "C", "V2"}).versesCodes, {"V1", "V2"});
-		assertEquals(PartCodesSong({"V1", "V2"}).versesCodes, {"V1", "V2"});
-	}
-}
-
-class PresentationTest() {
-	test
-	shared void presentationConsistOfSpaceDelimitedVersesCodesWhenNoChorus() {
-
-		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, false);
-		value sut = Presentation(partCodes);
-
-		//exercise
-		value result = sut.string;
-
-		//verify
-		assertEquals(result,"V1 V2 V3");
-	}
-
-	test
-	shared void presentationConsistOfSpaceDelimitedVersesCodesInterleavedWithCWhenChorus() {
-
-		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, true);
-		value sut = Presentation(partCodes);
-
-		//exercise
-		value result = sut.string;
-
-		//verify
-		assertEquals(result,"V1 C V2 C V3 C");
-	}
-	
-	class SimpleSongWithVerses(shared actual {String*} versesCodes, shared actual Boolean containsChorus) satisfies SongWithVerses {}
-}
 
 //shared OpenSongSong createOpenSongSong(String presentation) {
 //	value song = OpenSongSong();
@@ -369,7 +274,7 @@ shared class SongFilesTest() {
 		value result = SongFiles({picked, notPicked});
 
 		//verify
-		assertEquals(result, {picked});
+		assertEquals(result.sequence(), [picked]);
 	}
 //
 //	test

@@ -14,12 +14,14 @@ interface SongWithVerses {
 
 class PartCodesSong({String*} partCodes) satisfies SongWithVerses {
 
+	value chorusCode = "C";
+
 	shared actual Boolean containsChorus {
-		return partCodes.contains("C");
+		return partCodes.contains(chorusCode);
 	}
 
 	shared actual {String*} versesCodes {
-		return partCodes.filter((element) => element != "C");
+		return partCodes.filter((element) => element != chorusCode);
 	}
 }
 
