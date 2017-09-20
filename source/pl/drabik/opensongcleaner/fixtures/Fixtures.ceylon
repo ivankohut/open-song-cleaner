@@ -11,7 +11,7 @@ import java.util {
 }
 
 import pl.drabik.opensongcleaner {
-	SongFiles,
+	OpenSongFiles,
 	Named
 }
 
@@ -44,7 +44,7 @@ shared class VyberSuborovNaSpracovanie() {
 	shared Boolean vybranyNaSpracovanie() {
 		value file = SimpleNamed(nazovSuboru);
 		// exercise
-		value pickedFiles = SongFiles({file});
+		value pickedFiles = OpenSongFiles({file});
 
 		return pickedFiles.contains(file);
 	}

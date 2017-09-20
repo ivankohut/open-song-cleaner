@@ -1,6 +1,3 @@
-import ceylon.interop.java {
-	javaClass
-}
 import ceylon.language {
 	CString=String
 }
@@ -12,6 +9,10 @@ import fitnesse.slim.converters {
 	ConverterRegistry
 }
 
+import java.lang {
+	Types
+}
+
 class CeylonStringConverter() satisfies Converter<CString> {
 	shared actual CString? fromString(String? javaString) => javaString;
 	shared actual String? toString(CString? ceylonString) => ceylonString;
@@ -19,7 +20,7 @@ class CeylonStringConverter() satisfies Converter<CString> {
 
 void registerConverters() {
 	ConverterRegistry.addConverter(
-		javaClass<CString>(), 
+		Types.classForType<CString>(), 
 		CeylonStringConverter()
 	);
 }

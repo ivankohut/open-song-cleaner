@@ -271,7 +271,7 @@ shared class SongFilesTest() {
 		value notPicked = SimpleNamed("song.txt");
 
 		//exercise
-		value result = SongFiles({picked, notPicked});
+		value result = OpenSongFiles({picked, notPicked});
 
 		//verify
 		assertEquals(result.sequence(), [picked]);

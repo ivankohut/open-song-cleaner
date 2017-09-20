@@ -25,12 +25,12 @@ shared interface Cleanable {
 	shared formal void clean();
 }
 
-class FileCleanableOpenSongSongs({MyFile*} songFiles, Mapping<MyFile,{Cleanable*}> mapping) satisfies Cleanable {
+class HymnBook({Cleanable*} songs) satisfies Cleanable {
 	shared actual void clean() {
 		// this does not work - static method reference (possible ceylon bug)
 		// songFiles.flatMap(mapping.map).each(Cleanable.clean);
 		// so I must use this:
-		songFiles.flatMap(mapping.map).each((song) => song.clean());
+		songs.each(Cleanable.clean);
 	}
 }
 
@@ -100,7 +100,8 @@ class PresentableSongFile(TextFile file) satisfies Presentable {
 	}
 }
 
-shared class SongFiles<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
+"Extensionless - do not contain dot ('.')"
+shared class OpenSongFiles<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
 	
 	Boolean isExtensionLess(Named file) => !file.name.contains('.');
 	
