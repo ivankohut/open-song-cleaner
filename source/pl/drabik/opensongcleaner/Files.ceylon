@@ -37,8 +37,14 @@ class DirectoryOfFiles(MyFile directory) satisfies Iterable<MyFile> {
 }
 
 
-class FileNameCorrecting(MyFile file, {Character*} newName, RenamingListener listener) satisfies Cleanable {
+class FileNameCorrecting(RenameableFile file, {Character*} newName) satisfies Cleanable {
 	shared actual void clean() {
+		file.rename(newName);
+	}
+}
+
+class RenameableFile(MyFile file, RenamingListener listener) {
+	shared void rename({Character*} newName) {
 		value newFilenameString = String(newName);
 		if (newFilenameString != file.name) {
 			value filePath = parsePath(file.path);

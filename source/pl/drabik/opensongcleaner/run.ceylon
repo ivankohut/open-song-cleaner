@@ -32,13 +32,12 @@ shared void run() {
 						listener
 					),
 					FileNameCorrecting {
-						file;
+						file = RenameableFile(file, listener);
 						newName = ChainedIterables(
 							LeftPadded(OpenSongSongHymnNumber(openSongSong), 3, '0'),
 							" - ",
 							AccentsLess(OpenSongSongTitle(openSongSong))
 						);
-						listener;
 					}
 				)
 		)
@@ -58,7 +57,7 @@ class LazyJaxbContext({Character*} packageName) extends JAXBContext() {
 }
 
 class Songs({MyFile*} files, Cleanable(MyFile) fileToCleanable) satisfies Iterable<Cleanable> {
-	shared actual Iterator<Cleanable> iterator() => files.map((songFile) => fileToCleanable(songFile)).iterator();
+	shared actual Iterator<Cleanable> iterator() => files.map(fileToCleanable).iterator();
 }
 
 shared interface CleaningOptions {
