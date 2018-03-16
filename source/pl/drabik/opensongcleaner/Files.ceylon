@@ -10,32 +10,32 @@ import java.io {
 import org.apache.commons.io {
 	FileUtils
 }
-
-shared interface MyFile satisfies Named {
-	shared formal String path;
-	shared actual default String name => parsePath(path).normalizedPath.elementPaths.last?.string else "";
+import java.nio.charset {
+	Charset
 }
 
-shared class FileMyFile(File file) satisfies MyFile {
+shared interface FileOnPath satisfies Named {
+	shared formal String path;
+}
+
+shared class FileMyFile(File file) satisfies FileOnPath {
 	shared actual String name => file.name;
 	shared actual String path => file.path.string;
 }
 
-class DirectoryOfFiles(MyFile directory) satisfies Iterable<MyFile> {
 
+class DirectoryOfFiles({Character*} path) satisfies Iterable<File> {
 	Directory fsDirectory() {
-		if (is Directory dir = parsePath(directory.path).resource) {
+		if (is Directory dir = parsePath(String(path)).resource) {
 			return dir;
 		} else {
-			throw Exception("Adresár '``directory.path``' neexistuje.");
+			throw Exception("Adresár '``path``' neexistuje.");
 		}
 	}
-
-	shared actual Iterator<MyFile> iterator() => fsDirectory().files()
-			.sort((File x, File y) => x.name.compare(y.name))
-			.map((file) => FileMyFile(file)).iterator();
+	
+	shared actual Iterator<File> iterator() => fsDirectory().files()
+			.sort((File x, File y) => x.name.compare(y.name)).iterator();
 }
-
 
 class FileNameCorrecting(RenameableFile file, {Character*} newName) satisfies Cleanable {
 	shared actual void clean() {
@@ -43,7 +43,7 @@ class FileNameCorrecting(RenameableFile file, {Character*} newName) satisfies Cl
 	}
 }
 
-class RenameableFile(MyFile file, RenamingListener listener) {
+class RenameableFile(FileOnPath file, RenamingListener listener) {
 	shared void rename({Character*} newName) {
 		value newFilenameString = String(newName);
 		if (newFilenameString != file.name) {
@@ -64,22 +64,21 @@ class RenameableFile(MyFile file, RenamingListener listener) {
 }
 
 
-shared interface TextFile satisfies Named {
+shared interface NamedText satisfies Named {
 	shared formal String content();
 	shared formal void replaceContent(String newContent);
 }
 
-class UTF8TextFile(MyFile myFile) satisfies TextFile {
-	value fileEncoding = "UTF-8";
-	value file = JFile(myFile.path);
+class TextFile(FileOnPath file, Charset charset) satisfies NamedText {
+	value javaFile = JFile(file.path);
 
-	shared actual String name => file.name;
+	shared actual String name => javaFile.name;
 
 	shared actual String content() {
-		return FileUtils.readFileToString(file, fileEncoding);
+		return FileUtils.readFileToString(javaFile, charset.name());
 	}
 
 	shared actual void replaceContent(String newContent) {
-		FileUtils.writeStringToFile(file, newContent, fileEncoding);
+		FileUtils.writeStringToFile(javaFile, newContent, charset.name());
 	}
 }

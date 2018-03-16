@@ -1,4 +1,12 @@
 
+import ceylon.file {
+	File
+}
+
+import java.nio.charset {
+	StandardCharsets
+}
+
 import javax.xml.bind {
 	JAXBContext,
 	Marshaller,
@@ -13,11 +21,14 @@ shared void run() {
 	value jaxbContext = LazyJaxbContext("pl.drabik.opensongcleaner.opensong");
 	value logger = CliLogger();
 	HymnBook(
-		Songs(
-			OpenSongFiles(
-				DirectoryOfFiles(options)
+		Mapped(
+			ExtensionLess(
+				Mapped(
+					DirectoryOfFiles(options),
+					(File file) => FileMyFile(file)
+				)
 			),
-			(MyFile file) =>
+			(FileOnPath file) =>
 				let (
 					openSongSong = SingleCache(XmlFileOpenSongSongProvider(jaxbContext, file)),
 				 	songFile = SongFile(openSongSong),
@@ -28,7 +39,7 @@ shared void run() {
 					PresentationCorrectingSong(
 						songFile,
 						Presentation(PartCodesSong(ExtractedPartCodes(songFile))),
-						PresentableSongFile(UTF8TextFile(file)),
+						PresentableSongFile(TextFile(file, StandardCharsets.utf8)),
 						listener
 					),
 					FileNameCorrecting {
@@ -56,10 +67,6 @@ class LazyJaxbContext({Character*} packageName) extends JAXBContext() {
 	shared actual Validator createValidator() => context.createValidator();
 }
 
-class Songs({MyFile*} files, Cleanable(MyFile) fileToCleanable) satisfies Iterable<Cleanable> {
-	shared actual Iterator<Cleanable> iterator() => files.map(fileToCleanable).iterator();
-}
-
 shared interface CleaningOptions {
 	shared formal Boolean presentation;
 	shared formal Boolean fileName;
@@ -76,14 +83,14 @@ class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable f
 	}
 }
 
-class OpenSongCleanerOptions() satisfies CleaningOptions & MyFile {
+class OpenSongCleanerOptions() satisfies CleaningOptions & Iterable<Character> {
 	
 	Nothing noDirectorySpecified() {
 		throw Exception("No directory specified.");
 	}
 	
 	suppressWarnings ("expressionTypeNothing")
-	shared actual String path => process.namedArgumentValue("d") else noDirectorySpecified();
+	shared actual Iterator<Character> iterator() => (process.namedArgumentValue("d") else noDirectorySpecified()).iterator();
 	
 	shared actual Boolean fileName => process.namedArgumentPresent("r");
 	shared actual Boolean presentation => process.namedArgumentPresent("p");

@@ -52,7 +52,7 @@ shared class PresentationCorrectingSong(
 		if (existingPresentation == newPresentation) {
 			listener.onSame();
 		} else if (existingPresentation.empty) {
-			song.setPresentation(newPresentation);
+			song.updatePresentation(newPresentation);
 			listener.onNew();
 		} else {
 			listener.onDifferent();
@@ -82,12 +82,12 @@ class OpenSongSongHymnNumber(Provider<OpenSongSong> song) {
 }
 
 shared interface Presentable {
-	shared formal void setPresentation(String presentation);
+	shared formal void updatePresentation(String presentation);
 }
 
-class PresentableSongFile(TextFile file) satisfies Presentable {
+class PresentableSongFile(NamedText file) satisfies Presentable {
 	
-	shared actual void setPresentation(String presentation) {
+	shared actual void updatePresentation(String presentation) {
 		value content = file.content();
 		value matcher = Pattern.compile("(\\<presentation\\>(.*)\\<\\/presentation\\>)").matcher(nativeString(content));
 		if (matcher.find()) {
@@ -100,8 +100,8 @@ class PresentableSongFile(TextFile file) satisfies Presentable {
 	}
 }
 
-"Extensionless - do not contain dot ('.')"
-shared class OpenSongFiles<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
+"Named objects whose name does not contain dot ('.')"
+shared class ExtensionLess<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
 	
 	Boolean isExtensionLess(Named file) => !file.name.contains('.');
 	
@@ -111,7 +111,7 @@ shared class OpenSongFiles<N>(Iterable<N> files) satisfies Iterable<N> given N s
 class OpenSongSongSerializerException() extends Exception() {
 }
 
-class XmlFileOpenSongSongProvider(JAXBContext jaxbContext, MyFile file) satisfies Provider<OpenSongSong> {
+class XmlFileOpenSongSongProvider(JAXBContext jaxbContext, FileOnPath file) satisfies Provider<OpenSongSong> {
 	shared actual OpenSongSong get() {
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		JFile jFile = JFile(file.path.string);

@@ -11,15 +11,18 @@ shared interface Mapping<in Source, out Target> {
 }
 
 class SingleCache<out T>(Provider<T> provider) satisfies Provider<T> {
-	variable T? cached = null;
-	shared actual T get() => cached else (cached = provider.get());
-	// compiler backend error:
-	//late value element = provider.get();
-	//shared actual T get() => element;
+	late value element = provider.get();
+	shared actual T get() => element;
 }
 
 class ChainedIterables<out Element>({Element*}* iterables) satisfies {Element*} {
 	shared actual Iterator<Element> iterator() => iterables
-			.fold<{Element*}>({})((result, iterable) => result.chain(iterable))
-			.iterator();
+		.fold<{Element*}>({})((result, iterable) => result.chain(iterable))
+		.iterator();
+}
+
+class Mapped<in S, out T>({S*} elements, T(S) transformation) satisfies Iterable<T>
+		given S satisfies Object
+		given T satisfies Object {
+	shared actual Iterator<T> iterator() => elements.map(transformation).iterator();
 }
