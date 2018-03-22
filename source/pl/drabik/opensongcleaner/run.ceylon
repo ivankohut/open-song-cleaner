@@ -1,4 +1,3 @@
-
 import ceylon.file {
 	File
 }
@@ -6,14 +5,6 @@ import ceylon.file {
 import java.nio.charset {
 	StandardCharsets
 }
-
-import javax.xml.bind {
-	JAXBContext,
-	Marshaller,
-	Unmarshaller,
-	Validator
-}
-
 
 "The runnable method of the module."
 shared void run() {
@@ -68,43 +59,4 @@ shared void run() {
 	}
 }
 
-class LazyJaxbContext({Character*} packageName) extends JAXBContext() {
 
-	late value context = JAXBContext.newInstance(String(packageName));
-
-	shared actual Marshaller createMarshaller() => context.createMarshaller();
-
-	shared actual Unmarshaller createUnmarshaller() => context.createUnmarshaller();
-
-	suppressWarnings("deprecation")
-	shared actual Validator createValidator() => context.createValidator();
-}
-
-shared interface CleaningOptions {
-	shared formal Boolean presentation;
-	shared formal Boolean fileName;
-}
-
-class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable fileName) satisfies Cleanable {
-	shared actual void clean() {
-		if (options.presentation) {
-			presentation.clean();
-		}
-		if (options.fileName) {
-			fileName.clean();
-		}
-	}
-}
-
-class OpenSongCleanerOptions() satisfies CleaningOptions & Iterable<Character> {
-
-	Nothing noDirectorySpecified() {
-		throw Exception("No directory specified. Example: '-d <directory>'");
-	}
-
-	suppressWarnings ("expressionTypeNothing")
-	shared actual Iterator<Character> iterator() => (process.namedArgumentValue("d") else noDirectorySpecified()).iterator();
-
-	shared actual Boolean fileName => process.namedArgumentPresent("r");
-	shared actual Boolean presentation => process.namedArgumentPresent("p");
-}

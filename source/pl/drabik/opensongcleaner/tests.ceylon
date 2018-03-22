@@ -7,8 +7,7 @@ import ceylon.file {
 }
 import ceylon.test {
 	test,
-	assertEquals,
-	assertTrue
+	assertEquals
 }
 
 //shared class TestLog() satisfies Logger {
