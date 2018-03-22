@@ -36,6 +36,17 @@ class HymnBook({Cleanable*} songs) satisfies Cleanable {
 	}
 }
 
+class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable fileName) satisfies Cleanable {
+	shared actual void clean() {
+		if (options.presentation) {
+			presentation.clean();
+		}
+		if (options.fileName) {
+			fileName.clean();
+		}
+	}
+}
+
 shared interface PresentationListener {
 	shared formal void onSame();
 	shared formal void onNew();
