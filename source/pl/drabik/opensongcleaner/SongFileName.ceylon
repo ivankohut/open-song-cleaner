@@ -14,6 +14,18 @@ class AccentsLess({Character*} input) satisfies {Character*} {
 	}
 }
 
+class FilteredOut({Character*} input, {Character*} ignored) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() {
+		return input.filter((Character c) => !ignored.contains(c)).iterator();
+	}
+}
+
+class TrimmedTrailing({Character*} input, {Character*} ignored) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() {
+		return String(input).trimTrailing(ignored.contains).iterator();
+	}
+}
+
 class LeftPadded(Object obj, Integer size, Character character) satisfies {Character*} {
 	shared actual Iterator<Character> iterator() => obj.string.padLeading(size, character).iterator();
 }

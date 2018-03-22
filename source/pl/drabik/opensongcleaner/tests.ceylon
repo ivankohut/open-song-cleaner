@@ -291,15 +291,15 @@ shared class SongFilesTest() {
 
 }
 
-shared class FileSystemProcessorTest() {
-
-	test
-	shared void todo() {
-		//exercise
-		//TODO: test1 -- write xml, read xml
-		//currently errors in Ceylon Test (JAXBException)
-
-		//verify
-		assertTrue(false);
-	}
-}
+//shared class FileSystemProcessorTest() {
+//
+//	test
+//	shared void todo() {
+//		//exercise
+//		//TODO: test1 -- write xml, read xml
+//		//currently errors in Ceylon Test (JAXBException)
+//
+//		//verify
+//		assertTrue(false);
+//	}
+//}

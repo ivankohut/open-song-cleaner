@@ -27,10 +27,12 @@ shared interface Cleanable {
 
 class HymnBook({Cleanable*} songs) satisfies Cleanable {
 	shared actual void clean() {
-		// this does not work - static method reference (possible ceylon bug)
-		// songFiles.flatMap(mapping.map).each(Cleanable.clean);
+		// this does not work - method reference (possible ceylon bug):
+		//   songs.each(Cleanable.clean);
 		// so I must use this:
-		songs.each(Cleanable.clean);
+		for (song in songs) {
+			song.clean();
+		}
 	}
 }
 
@@ -48,7 +50,7 @@ shared class PresentationCorrectingSong(
 	shared actual void clean() {
 		value existingPresentation = _existingPresentation.presentation;
 		value newPresentation = String(_newPresentation);
-		
+
 		if (existingPresentation == newPresentation) {
 			listener.onSame();
 		} else if (existingPresentation.empty) {
@@ -86,7 +88,7 @@ shared interface Presentable {
 }
 
 class PresentableSongFile(NamedText file) satisfies Presentable {
-	
+
 	shared actual void updatePresentation(String presentation) {
 		value content = file.content();
 		value matcher = Pattern.compile("(\\<presentation\\>(.*)\\<\\/presentation\\>)").matcher(nativeString(content));
@@ -102,26 +104,26 @@ class PresentableSongFile(NamedText file) satisfies Presentable {
 
 "Named objects whose name does not contain dot ('.')"
 shared class ExtensionLess<N>(Iterable<N> files) satisfies Iterable<N> given N satisfies Named {
-	
+
 	Boolean isExtensionLess(Named file) => !file.name.contains('.');
-	
+
 	shared actual Iterator<N> iterator() => files.filter(isExtensionLess).iterator();
 }
 
-class OpenSongSongSerializerException() extends Exception() {
+class OpenSongSongSerializerException(String message, Exception cause) extends Exception(message, cause) {
 }
 
 class XmlFileOpenSongSongProvider(JAXBContext jaxbContext, FileOnPath file) satisfies Provider<OpenSongSong> {
 	shared actual OpenSongSong get() {
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		JFile jFile = JFile(file.path.string);
+		JFile jFile = JFile(file.path);
 		try {
 			Object openSongSong = jaxbUnmarshaller.unmarshal(jFile);
 			assert (is OpenSongSong openSongSong);
 			return openSongSong;
 		} catch (UnmarshalException e) {
 			//			log.log("WARNING", "Súbor nemá štruktúru OpenSong piesne.");
-			throw OpenSongSongSerializerException();
+			throw OpenSongSongSerializerException("Súbor ``file.name`` nemá štruktúru OpenSong piesne.", e);
 		}
 	}
 }
