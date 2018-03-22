@@ -7,7 +7,6 @@ install:
   - unzip /tmp/ceylon.zip
   - export PATH=$PATH:$PWD/ceylon-$CEYLON_VERSION/bin/
 script:
-  - ./run-xjc
   - ceylon compile
   - ceylon test pl.drabik.opensongcleaner
 env:
