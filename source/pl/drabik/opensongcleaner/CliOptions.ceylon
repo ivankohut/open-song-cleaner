@@ -2,6 +2,7 @@
 shared interface CleaningOptions {
 	shared formal Boolean presentation;
 	shared formal Boolean fileName;
+	shared formal Boolean lyrics;
 }
 
 class OpenSongCleanerOptions() satisfies CleaningOptions & Iterable<Character> {
@@ -15,4 +16,6 @@ class OpenSongCleanerOptions() satisfies CleaningOptions & Iterable<Character> {
 
 	shared actual Boolean fileName => process.namedArgumentPresent("r");
 	shared actual Boolean presentation => process.namedArgumentPresent("p");
+	shared actual Boolean lyrics => process.namedArgumentPresent("l");
+
 }

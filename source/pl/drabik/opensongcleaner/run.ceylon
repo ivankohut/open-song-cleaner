@@ -31,11 +31,12 @@ shared void run() {
 				 	)
 					CleanableSong(
 						options,
-						PresentationCorrectingSong(
-							songFile,
+						TextContentCorrection(
+							OpenSongSongPresentation(openSongSong),
 							Presentation(PartCodesSong(ExtractedPartCodes(songFile))),
-							PresentableSongFile(TextFile(file, StandardCharsets.utf8)),
-							listener
+							XmlFirstElement(TextFile(file, StandardCharsets.utf8), "presentation"),
+							listener,
+							false
 						),
 						FileNameCorrecting {
 							file = RenameableFile(file, listener);
@@ -50,7 +51,14 @@ shared void run() {
 									illegalWindowsFileNameTrailingCharacters
 								)
 							);
-						}
+						},
+						TextContentCorrection(
+							OpenSongSongLyrics(openSongSong),
+							WhitespaceStrippedLyrics(songFile),
+							XmlFirstElement(TextFile(file, StandardCharsets.utf8), "lyrics"),
+							listener,
+							true
+						)
 					)
 			)
 		).clean();

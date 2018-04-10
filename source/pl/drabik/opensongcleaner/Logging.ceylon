@@ -15,7 +15,7 @@ shared class CliLogger() satisfies Logger {
 	}
 }
 
-shared class LoggingPresentationListener(Named subject, Logger logger) satisfies PresentationListener & RenamingListener {
+shared class LoggingPresentationListener(Named subject, Logger logger) satisfies ContentChangeListener & RenamingListener {
 	shared actual void onDifferent() {
 		logger.log(warning, "``subject.name`` - Prezentácia sa nezhoduje!");
 	}

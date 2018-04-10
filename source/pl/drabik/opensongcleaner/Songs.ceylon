@@ -1,9 +1,6 @@
 import java.io {
 	JFile=File
 }
-import java.util.regex {
-	Pattern
-}
 
 import javax.xml.bind {
 	JAXBContext,
@@ -13,12 +10,6 @@ import javax.xml.bind {
 
 import pl.drabik.opensongcleaner.opensong {
 	OpenSongSong
-}
-
-import java.lang {
-	Types {
-		nativeString
-	}
 }
 
 shared interface Cleanable {
@@ -36,7 +27,7 @@ class HymnBook({Cleanable*} songs) satisfies Cleanable {
 	}
 }
 
-class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable fileName) satisfies Cleanable {
+class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable fileName, Cleanable lyrics) satisfies Cleanable {
 	shared actual void clean() {
 		if (options.presentation) {
 			presentation.clean();
@@ -44,37 +35,28 @@ class CleanableSong(CleaningOptions options, Cleanable presentation, Cleanable f
 		if (options.fileName) {
 			fileName.clean();
 		}
+		if (options.lyrics) {
+			lyrics.clean();
+		}
 	}
 }
 
-shared interface PresentationListener {
+shared interface ContentChangeListener {
 	shared formal void onSame();
 	shared formal void onNew();
 	shared formal void onDifferent();
 }
 
-shared class PresentationCorrectingSong(
-	SongPresentation _existingPresentation,
-	{Character*} _newPresentation,
-	Presentable song,
-	PresentationListener listener) satisfies Cleanable {
-	shared actual void clean() {
-		value existingPresentation = _existingPresentation.presentation;
-		value newPresentation = String(_newPresentation);
-
-		if (existingPresentation == newPresentation) {
-			listener.onSame();
-		} else if (existingPresentation.empty) {
-			song.updatePresentation(newPresentation);
-			listener.onNew();
-		} else {
-			listener.onDifferent();
-		}
-	}
-}
-
 shared interface SongLyrics {
 	shared formal String lyrics;
+}
+
+class OpenSongSongLyrics(Provider<OpenSongSong> song) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() => song.get().lyrics.iterator();
+}
+
+class OpenSongSongPresentation(Provider<OpenSongSong> song) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() => song.get().presentation.iterator();
 }
 
 shared interface SongPresentation {
@@ -96,21 +78,6 @@ class OpenSongSongHymnNumber(Provider<OpenSongSong> song) {
 
 shared interface Presentable {
 	shared formal void updatePresentation(String presentation);
-}
-
-class PresentableSongFile(NamedText file) satisfies Presentable {
-
-	shared actual void updatePresentation(String presentation) {
-		value content = file.content();
-		value matcher = Pattern.compile("(\\<presentation\\>(.*)\\<\\/presentation\\>)").matcher(nativeString(content));
-		if (matcher.find()) {
-			file.replaceContent(
-				content.replaceFirst(matcher.group(1), "<presentation>" + presentation + "</presentation>")
-			);
-		} else {
-			throw Exception("File without presentation element: " + file.name);
-		}
-	}
 }
 
 "Named objects whose name does not contain dot ('.')"
@@ -141,4 +108,52 @@ class XmlFileOpenSongSongProvider(JAXBContext jaxbContext, FileOnPath file) sati
 
 shared interface RenamingListener {
 	shared formal void onRename(String newName);
+}
+
+shared interface TextElement {
+	shared formal void update({Character*} newContent);
+}
+
+shared class TextContentCorrection({Character*} _currentContent, {Character*} _newContent, TextElement element, ContentChangeListener listener, Boolean updateDifferent) satisfies Cleanable {
+	shared actual void clean() {
+		value currentContent = String(_currentContent);
+		value newContent = String(_newContent);
+
+		if (currentContent == newContent) {
+			listener.onSame();
+		} else if (currentContent.empty) {
+			element.update(newContent);
+			listener.onNew();
+		} else {
+			if (updateDifferent) {
+				element.update(newContent);
+			}
+			listener.onDifferent();
+		}
+	}
+}
+
+shared class WhitespaceStrippedLyrics(SongLyrics _existingLyrics) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() => "\n".join(
+		_existingLyrics.lyrics.lines.map((line) =>
+			line.trimTrailing((Character trimming) => trimming == ' ')
+		).filter((line) => !line.empty)
+	).iterator();
+}
+
+
+class XmlFirstElement(NamedText xml, String elementName) satisfies TextElement {
+
+	shared actual void update({Character*} newContent) {
+		value content = xml.content();
+		value startIndex = content.indexOf("<``elementName``>") + elementName.size + 2;
+		value endIndex = content.indexOf("</``elementName``>", startIndex);
+		if (endIndex >= 0) {
+			xml.replaceContent(
+				content.substring(0, startIndex) + String(newContent) + content.substring(endIndex)
+			);
+		} else {
+			throw Exception("XML without '``elementName``' element: " + xml.name);
+		}
+	}
 }
