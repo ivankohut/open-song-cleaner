@@ -1,5 +1,6 @@
 import ceylon.test {
-	test
+	test,
+	assertEquals
 }
 
 import java.lang {
@@ -34,5 +35,13 @@ class CommonTest() {
 		sut.get();
 		// verify
 		verify(provider).get();
+	}
+
+	test
+	shared void joinedText() {
+		// exercise
+		value sut = JoinedText(";", {"a", "b", "c"});
+		// verify
+		assertEquals("a;b;c", sut.string);
 	}
 }

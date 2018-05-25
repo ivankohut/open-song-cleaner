@@ -133,6 +133,10 @@ shared class TextContentCorrection({Character*} _currentContent, {Character*} _n
 	}
 }
 
+shared class SpacesNormalized({Character*} text) satisfies {Character*} {
+	shared actual Iterator<Character> iterator() => text.map((char) => if (char == '\{NO-BREAK SPACE}') then ' ' else char).iterator();
+}
+
 shared class WhitespaceStrippedLyrics(SongLyrics _existingLyrics) satisfies {Character*} {
 	shared actual Iterator<Character> iterator() => "\n".join(
 		_existingLyrics.lyrics.lines.map((line) =>

@@ -1,9 +1,17 @@
 import ceylon.collection {
 	ArrayList
 }
+import ceylon.file {
+	temporaryDirectory,
+	Directory,
+	parsePath
+}
 
 import java.lang {
 	JString=String
+}
+import java.nio.charset {
+	StandardCharsets
 }
 import java.util {
 	JList=List,
@@ -12,27 +20,33 @@ import java.util {
 
 import pl.drabik.opensongcleaner {
 	ExtensionLess,
-	Named
+	Named,
+	runCleaner,
+	Logger,
+	LogLevel,
+	CleaningOptions,
+	TextFile,
+	FileOnPath,
+	NamedText
 }
-
 
 shared class SpustenieVSystemeSAdresarovouStrukturou(String path) {
 
 	shared variable JList<JString> argumenty = JArrayList<JString>();
 
-//	shared String sprava() {
-//		//TODO: prva sprava v logu
-//		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
-//
-//		try {
-//			value log = PrinterLog();
-//			value openSongCleaner = OpenSongCleaner(argumentyList,log);
-//			return openSongCleaner.log.lastMessage();
-//		} catch (Exception e) {
-//			return "chyba[``e.message``]";
-//		}
-//		//TODO: use existingDirectory instead of a particular one
-//	}
+	//	shared String sprava() {
+	//		//TODO: prva sprava v logu
+	//		value argumentyList = CeylonIterable<JString>(argumenty).map((str) => str.string).sequence();
+	//
+	//		try {
+	//			value log = PrinterLog();
+	//			value openSongCleaner = OpenSongCleaner(argumentyList,log);
+	//			return openSongCleaner.log.lastMessage();
+	//		} catch (Exception e) {
+	//			return "chyba[``e.message``]";
+	//		}
+	//		//TODO: use existingDirectory instead of a particular one
+	//	}
 }
 
 shared class VyberSuborovNaSpracovanie() {
@@ -44,31 +58,63 @@ shared class VyberSuborovNaSpracovanie() {
 	shared Boolean vybranyNaSpracovanie() {
 		value file = SimpleNamed(nazovSuboru);
 		// exercise
-		value pickedFiles = ExtensionLess({file});
+		value pickedFiles = ExtensionLess({ file });
 
 		return pickedFiles.contains(file);
 	}
 }
 
-//shared class VypocetPrezentacie() {
-//
-//	shared variable String textPiesne = "";
-//
-//	shared String prezentacia() {
-//		Presentation(PartCodesSong(ExtractedPartCodes(object satisfies SongLyrics {
-//			
-//		})))
-//		
-//		value song = OpenSongSong();
-//		song.lyrics =  textPiesne;
-//		song.presentation = "";
-//
-//		value songProcessor = OpenSongSongProcessor(OpenSongPresentationComputer(),CliLogger());
-//		songProcessor.computeAndReplacePresentation(song);
-//
-//		return song.presentation;
-//	}
-//}
+object nullLogger satisfies Logger {
+	shared actual void log(LogLevel logLevel, String message) {}
+}
+
+class SimpleCleaningOptions(
+	shared actual Boolean fileName,
+	shared actual Boolean presentation,
+	shared actual Boolean lyrics,
+	String directory) satisfies CleaningOptions & {Character*} {
+	shared actual Iterator<Character> iterator() => directory.iterator();
+}
+
+shared class VypocetPrezentacie() {
+
+	shared variable String textPiesne = "";
+
+	function firstElementText(String xml, String element) {
+		value startIndex = xml.indexOf("<``element``>") + element.size + 2;
+		value endIndex = xml.indexOf("</``element``>", startIndex);
+		if (endIndex >= 0) {
+			return xml.substring(startIndex, endIndex);
+		} else {
+			throw Exception("XML without '``element``' element.");
+		}
+	}
+
+	NamedText newFileContaining(Directory directory, String content) {
+		String tempFilePath = directory.TemporaryFile(null, null).path.string.removeTerminal(".tmp");
+		assert (is String tempFileName = parsePath(tempFilePath).elements.last);
+
+		value songFile = TextFile(
+			object satisfies FileOnPath {
+				shared actual String name => tempFileName;
+				shared actual String path => tempFilePath;
+			},
+			StandardCharsets.utf8
+		);
+		songFile.replaceContent(content);
+		return songFile;
+	}
+
+	shared String prezentacia() {
+		value lyrics = textPiesne.removeInitial("<pre>").removeTerminal("</pre>");
+		value directory= temporaryDirectory.TemporaryDirectory("osc");
+		value songFile = newFileContaining(directory, "<song><lyrics>``lyrics``</lyrics><presentation></presentation></song>");
+		// exercise
+		runCleaner(SimpleCleaningOptions(false, true, false, directory.path.string), nullLogger);
+		// response
+		return firstElementText(songFile.content(), "presentation");
+	}
+}
 
 //shared class NaplneniePrezentacie() {
 //	registerConverters();
@@ -121,8 +167,8 @@ shared class VysledkySpracovaniaSuborov() {
 	shared variable String spravaSpracovania = "";
 	shared variable Boolean premenovany = false;
 
-	shared void compute(){
-		kontext.riadky.add(Riadok(nazovSuboru,typVysledku,spravaSpracovania,premenovany));
+	shared void compute() {
+		kontext.riadky.add(Riadok(nazovSuboru, typVysledku, spravaSpracovania, premenovany));
 	}
 }
 
@@ -147,13 +193,13 @@ shared class SpravyVAplikacnomLogu() {
 	shared JList<Object> query() {
 
 		return
-		list(
 			list(
-				list("zaznam v logu","Spracúvam súbor 'piesen':")
-			),
-			list(
-				list("zaznam v logu","- Prezentácia nastavená.")
-			)
-		);
+				list(
+					list("zaznam v logu", "Spracúvam súbor 'piesen':")
+				),
+				list(
+					list("zaznam v logu", "- Prezentácia nastavená.")
+				)
+			);
 	}
 }

@@ -1,6 +1,5 @@
 import ceylon.test {
-	test,
-	assertEquals
+	test
 }
 
 //import com.athaydes.specks {
@@ -41,25 +40,37 @@ import ceylon.test {
 //	}
 //};
 
-class FakeSongLyrics(shared actual String lyrics) satisfies SongLyrics {}
-
 class ExtractedPartCodesTest() {
+	" Parts codes extracted from lyrics, empty and comment lines (lines starting with ;) and accords lines (lines starting with .) are ignored."
 	test
-	shared void twoVerseTextWithChorusContainsTwoVerseCodeAndChorus() {
+	shared void extractedParts() {
 		value songText="""
-		                  [V1]
-		                  Prvý riadok
-		                  Druhý riadok
-		                  [C]
-		                  Refrén
-		                  [V2]
-		                  Prvý riadok
-		                  Druhý riadok
+		                  [Part]
+		                  . F# Cdim
+		                   Some text
+		                  1Some text
+
+		                  2Some text
+		                   Some text
+		                  1Some text
+		                  2Some text
+		                  ;Some text
+
+		                  [AnotherPart]
+
+		                   Some text
+		                  1Some text
+		                  . F# Cdim
+		                  2Some text
+		                   Some text
+		                  1Some text
+		                  2Some text
+
 		                  """;
 		// exercise
 		value sut = ExtractedPartCodes(SimpleSongLyrics(songText));
 		// verify
-		assertIterable(sut.sequence()).containsExactly(["V1", "C", "V2"]);
+		assertIterable(sut.sequence()).containsExactly(["Part", "Part1", "Part2", "AnotherPart", "AnotherPart1", "AnotherPart2"]);
 	}
 
 	class SimpleSongLyrics(shared actual String lyrics) satisfies SongLyrics {}
@@ -85,45 +96,28 @@ class ExtractedPartCodesTest() {
 //	}
 //};
 
-
-class PartCodesSongTest() {
-	test shared void containsChorusIffAtLeastOnePartCodesIsC() {
-		assert (PartCodesSong({"V1", "C", "V2"}).containsChorus);
-		assert (!PartCodesSong({"V1", "V2"}).containsChorus);
-	}
-
-	test shared void versesCodesAreAllPartCodesExceptChorus() {
-		assertIterable(PartCodesSong({"V1", "C", "V2"}).versesCodes).containsExactly({"V1", "V2"});
-		assertIterable(PartCodesSong({"V1", "V2"}).versesCodes).containsExactly({"V1", "V2"});
-	}
-}
-
-class PresentationTest() {
+class PartsPresentationTest() {
 	test
-	shared void presentationConsistOfSpaceDelimitedVersesCodesWhenNoChorus() {
-
-		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, false);
-		value sut = Presentation(partCodes);
-
-		//exercise
-		value result = sut.string;
-
-		//verify
-		assertEquals(result, "V1 V2 V3");
+	shared void justGivenPartsWhenChorusIsNotPresent() {
+		// exercise
+		value sut = PartsPresentation({"V1", "V2", "V3"}, "C");
+		// verify
+		assertIterable(sut).containsExactly({"V1", "V2", "V3"});
 	}
 
 	test
-	shared void presentationConsistOfSpaceDelimitedVersesCodesInterleavedWithCWhenChorus() {
-
-		value partCodes = SimpleSongWithVerses({"V1","V2","V3"}, true);
-		value sut = Presentation(partCodes);
-
-		//exercise
-		value result = sut.string;
-
-		//verify
-		assertEquals(result, "V1 C V2 C V3 C");
+	shared void partsInterleavedWithChorusStartingWithChorusWhenChorusIsTheFirstPart() {
+		// exercise
+		value sut = PartsPresentation({"C", "V1", "V2", "V3"}, "C");
+		// verify
+		assertIterable(sut).containsExactly({"C", "V1", "C", "V2", "C", "V3"});
 	}
 
-	class SimpleSongWithVerses(shared actual {String*} versesCodes, shared actual Boolean containsChorus) satisfies SongWithVerses {}
+	test
+	shared void partsInterleavedWithChorusStartingWithFirstPartWhenChorusIsTheSecondOrLaterPart() {
+		// exercise
+		value sut = PartsPresentation({"V1", "C", "V2", "V3"}, "C");
+		// verify
+		assertIterable(sut).containsExactly({"V1", "C", "V2", "C", "V3", "C"});
+	}
 }

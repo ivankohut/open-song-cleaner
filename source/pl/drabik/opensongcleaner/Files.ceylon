@@ -32,7 +32,7 @@ class DirectoryOfFiles({Character*} path) satisfies Iterable<File> {
 			throw Exception("Adresár '``path``' neexistuje.");
 		}
 	}
-	
+
 	shared actual Iterator<File> iterator() => fsDirectory().files()
 			.sort((File x, File y) => x.name.compare(y.name)).iterator();
 }
@@ -69,7 +69,7 @@ shared interface NamedText satisfies Named {
 	shared formal void replaceContent(String newContent);
 }
 
-class TextFile(FileOnPath file, Charset charset) satisfies NamedText {
+shared class TextFile(FileOnPath file, Charset charset) satisfies NamedText {
 	value javaFile = JFile(file.path);
 
 	shared actual String name => javaFile.name;

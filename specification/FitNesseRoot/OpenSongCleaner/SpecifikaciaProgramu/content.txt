@@ -39,11 +39,13 @@ Začiatok a výsledok spracovania súboru sú zachytené v aplikačnom logu.
 
 !3 Naplnenie sekcie prezentácia zo slôh piesne
 
-Prezentácia obsahuje kódy slôh v poradí v akom sú uvedené v texte piesne. Ak text obsahuje refrén (kód "C"), tak tento je zopakovaný po každej slohe.
+Prezentácia obsahuje kódy slôh v poradí v akom sú uvedené v texte piesne. Ak text obsahuje refrén (kód "C"), tak tento je zopakovaný pred každou slohou (ak je refrén uvedený pred prvou slohou) alebo po každej slohe (ak je refrén uvedený po prvej slohe).
  
 |Vypocet prezentacie     |
 |text piesne|prezentacia?|
-|{{{[V1]
+|{{{;komentar
+[V1]
+;dalsi komentar
  Haleluja!
  Haleluja!
  Haleluja!}}}|V1|
@@ -71,6 +73,15 @@ Prezentácia obsahuje kódy slôh v poradí v akom sú uvedené v texte piesne. 
 [V2]
  Požehnania mi, Pane môj,|do srdca hojne vlej,
  plameňom Ducha svätého|k službe ma rozohrej.}}}|V1 C V2 C|
+|{{{[C]
+ Nech nová pieseň zaznieva|zo srdca môjho vždy.
+ Požehnaním Ty učiň ma|pre smutné životy.
+[V1]
+ Požehnaním Ty učiň ma,|Pane môj predrahý,
+ nech som Ti plný vďačnosti,|naveky poddaný.
+[V2]
+ Požehnania mi, Pane môj,|do srdca hojne vlej,
+ plameňom Ducha svätého|k službe ma rozohrej.}}}|C V1 C V2|
 
 
 Program naplní sekciu prezentácia (XML element '''presentation''') ak je prázdna. Ak je vyplnená, tak overí jej správnosť.
@@ -80,6 +91,32 @@ Program naplní sekciu prezentácia (XML element '''presentation''') ak je práz
 |             |V1 V2             |V1 V2        |Prezentácia nastavená.                               |
 |V1 C V2 C    |V1 C V2 C         |V1 C V2 C    |                                                     |
 |V1 C V2      |V1 C V2 C         |V1 C V2      |Vypočítaná prezentácia nie je v súlade s existujúcou.|
+
+Ak sú slohy zadané vo formáte obsahujúcom akordy:
+
+|Vypocet prezentacie     |
+|text piesne|prezentacia?|
+|{{{[V]
+. F  D
+1Haleluja!
+2Haleluja!
+3Haleluja!
+[C]
+.G  D
+ prvy riadok refrenu
+.
+ dalsi riadok refrenu
+}}}|V1 C V2 C V3 C|
+|{{{[C]
+.G  D
+ prvy riadok refrenu
+.
+ dalsi riadok refrenu
+[V]
+. F  D
+1Haleluja!
+2Haleluja!
+3Haleluja!}}}|C V1 C V2 C V3|
 
 
 !3 Aktualizácia názvu súboru piesne

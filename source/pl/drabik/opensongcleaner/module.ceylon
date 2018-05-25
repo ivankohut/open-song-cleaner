@@ -5,7 +5,7 @@ native("jvm")
 module pl.drabik.opensongcleaner "1.0.0" {
 	import javax.xml "8";
 	import javax.jaxws "8";
-	import java.base "8";
+	shared import java.base "8";
 	shared import ceylon.test "1.3.3.1";
 	//shared import com.athaydes.specks "0.7.1";
 	shared import ceylon.file "1.3.3";
