@@ -1,6 +1,6 @@
 "The best OpenSongCleaner module"
 by("Peter Drabik and Ivan Kohut")
-license("http://www.apache.org/licenses/LICENSE-2.0")
+license("https://opensource.org/licenses/BSD-2-Clause")
 native("jvm")
 module pl.drabik.opensongcleaner "1.0.0" {
 	import javax.xml "8";
